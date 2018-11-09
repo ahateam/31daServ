@@ -1,0 +1,17 @@
+###短信通道通用配置
+#签名设置
+sms_sign:大鱼测试
+sms_product:咘咕网
+
+
+###阿里大鱼短信通道配置
+#用户注册短信验证码模板
+alidayu_sms_register:SMS_13018034
+#用户登陆短信验证码模板
+alidayu_sms_login:SMS_13018036
+#用户修改密码短信验证码模板
+alidayu_sms_updatepwd:SMS_13018032
+#用户绑定手机号短信验证码模板
+alidayu_sms_bandmobile:SMS_13018038
+
+

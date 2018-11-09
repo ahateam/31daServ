@@ -1,0 +1,7 @@
+host:fktest.cn-beijing.ots.aliyuncs.com
+port:123
+userAndPass:DvlzXH5M7ZCYuqE5GFxyVQ5uDI83Wf
+
+maxTotal:250
+maxIdle:150
+maxWaitMillis:10000

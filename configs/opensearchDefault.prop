@@ -1,0 +1,13 @@
+host:http\://opensearch-cn-beijing.aliyuncs.com
+accessKeyId:Q6q7mKRDJpAxlnYm
+accessKeySecret:7j4QVsWTL6KI2GWAqK05og0M2x1Qrl
+
+#正式环境
+#post:cp_cp_post
+content:cp_content
+starGroup:cp_star_group
+
+#测试环境
+post:cp_post
+#content:qiongbi
+#starGroup:star_group

@@ -1,0 +1,11 @@
+#短信网关配置
+
+#阿里大鱼
+alidayu_apiUrl:http\://gw.api.taobao.com/router/rest
+alidayu_appkey:23438144
+alidayu_appsecret:e196617a47c86135e97b07ec889a2c2e
+
+#第一信息
+dyxx_apiUrl:http\://sms.1xinxi.cn/asmx/smsservice.aspx
+dyxx_name:bugushishang@126.com
+dyxx_pwd:C996CD5B09733DDED4D3697F3D64
