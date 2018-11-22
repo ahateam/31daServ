@@ -3,7 +3,7 @@ package xhj.cn.start;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 
-import zyxhj.org.cn.cms.domain.Content;
+import zyxhj.cms.domain.Content;
 import zyxhj.org.cn.utils.data.DataSource;
 import zyxhj.org.cn.utils.data.DataSourceUtils;
 import zyxhj.org.cn.utils.data.rds.RDSUtils;

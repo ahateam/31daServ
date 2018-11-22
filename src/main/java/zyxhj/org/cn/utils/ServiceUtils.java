@@ -2,8 +2,8 @@ package zyxhj.org.cn.utils;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 
-import zyxhj.org.cn.core.domain.User;
-import zyxhj.org.cn.core.service.UserService;
+import zyxhj.core.domain.User;
+import zyxhj.core.service.UserService;
 
 public class ServiceUtils {
 

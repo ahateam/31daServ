@@ -6,7 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import zyxhj.org.cn.core.domain.UserSession;
+import zyxhj.core.domain.UserSession;
 
 /**
  * 缓存中心，项目中所有缓存集中在这里
