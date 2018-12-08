@@ -2,42 +2,27 @@ package zyxhj.store.domain;
 
 import java.util.Date;
 
-import zyxhj.org.cn.utils.data.rds.RDSAnnEntity;
-import zyxhj.org.cn.utils.data.rds.RDSAnnField;
-import zyxhj.org.cn.utils.data.rds.RDSAnnID;
+import zyxhj.utils.data.rds.RDSAnnEntity;
+import zyxhj.utils.data.rds.RDSAnnField;
+import zyxhj.utils.data.rds.RDSAnnID;
 
 /**
  * 
- * 单个的内容实体
+ * 商品
  */
-@RDSAnnEntity(alias = "tb_content")
+@RDSAnnEntity(alias = "tb_product")
 public class Product {
 
-	public static final Byte TYPE_ALBUM = 0;// 相册
-	public static final Byte TYPE_AUDIO = 1;// 音频
-	public static final Byte TYPE_VIDEO_CLIP = 2;// 短视频
-	public static final Byte TYPE_VIDEO = 3;// 视频
-	public static final Byte TYPE_LIVE = 4;// 直播
-	public static final Byte TYPE_H5 = 5;// H5文本
-	public static final Byte TYPE_POST = 6;// 帖子
-	public static final Byte TYPE_SET = 7;// 内容集合
+	public static final Byte STATUS_ENABLE = 0;
+	public static final Byte STATUS_DISABLE = 1;
 
-	public static final Byte STATUS_DRAFT = 0; // 草稿
-	public static final Byte STATUS_NORMAL = 1; // 正常
-	public static final Byte STATUS_CLOSED = 2; // 已关闭
-	public static final Byte STATUS_DELETED = 3; // 已删除
-
-	public static final Byte LEVEL_PUBLIC = 0; // 完全公开
+	public static final Byte TYPE_EXPRESS = 0;// 快递物流
+	public static final Byte TYPE_DELIVER = 1;// 自行配送
+	public static final Byte TYPE_AUTOMATIC = 2;// 自动（电子商品等等）
 
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long id;
-
-	/**
-	 * 内容类型
-	 */
-	@RDSAnnField(column = RDSAnnField.BYTE)
-	public Byte type;
 
 	/**
 	 * 状态
@@ -46,11 +31,10 @@ public class Product {
 	public Byte status;
 
 	/**
-	 * 分级（用于权限控制）</br>
-	 * （未实现）
+	 * 类型
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
-	public Byte level;
+	public Byte type;
 
 	/**
 	 * 创建时间
@@ -59,54 +43,43 @@ public class Product {
 	public Date createTime;
 
 	/**
-	 * 更新时间
-	 */
-	@RDSAnnField(column = RDSAnnField.TIME)
-	public Date updateTime;
-
-	/**
-	 * 上传用户编号
-	 */
-	@RDSAnnField(column = RDSAnnField.ID)
-	public Long upUserId;
-
-	/**
-	 * 上传专栏编号
-	 */
-	@RDSAnnField(column = RDSAnnField.ID)
-	public Long upChannelId;
-
-	/**
 	 * 标题
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_TITLE)
 	public String title;
 
 	/**
-	 * 评分（0~100）
+	 * 库存
 	 */
-	@RDSAnnField(column = RDSAnnField.BYTE)
-	public Byte score;
+	@RDSAnnField(column = RDSAnnField.INTEGER)
+	public Integer stock;
 
 	/**
-	 * 来源，用来鉴别来源的地址，存储时需要简化，以免查询较慢</br>
-	 * 一般使用来源标记 + 来源唯一标识，如：</br>
-	 * youku.youkuId
+	 * 成本价
 	 */
-	@RDSAnnField(column = "VARCHAR(128)")
-	public String origin;
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double costPrice;
 
 	/**
-	 * 内容元信息，例如电影是movie，电视剧是drama</br>
-	 * 英文字母，最长16位
-	 * 
+	 * 市场价
 	 */
-	@RDSAnnField(column = "VARCHAR(16)")
-	public String meta;
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double marketPrice;
 
 	/**
-	 * 数据</br>
-	 * JSON形式存储内容信息结构体，具体结构体视项目而定
+	 * 售价
+	 */
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double price;
+
+	/**
+	 * 会员价
+	 */
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double memberPrice;
+
+	/**
+	 * 牛逼的JSON
 	 */
 	@RDSAnnField(column = RDSAnnField.JSON)
 	public String data;

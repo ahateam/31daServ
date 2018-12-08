@@ -23,11 +23,15 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import zyxhj.cms.controller.ContentController;
+import zyxhj.core.controller.TagController;
 import zyxhj.core.controller.TestController;
+import zyxhj.core.controller.UserController;
 import zyxhj.custom.controller.HttpTestController;
-import zyxhj.org.cn.utils.CodecUtils;
-import zyxhj.org.cn.utils.api.Controller;
-import zyxhj.org.cn.utils.data.DataSourceUtils;
+import zyxhj.economy.controller.ORGController;
+import zyxhj.economy.controller.VoteController;
+import zyxhj.utils.CodecUtils;
+import zyxhj.utils.api.Controller;
+import zyxhj.utils.data.DataSourceUtils;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -43,9 +47,17 @@ public class MainVerticle extends AbstractVerticle {
 
 		putCtrlInMap(ctrlMap, TestController.getInstance("test"));
 
+		putCtrlInMap(ctrlMap, UserController.getInstance("user"));
+
+		putCtrlInMap(ctrlMap, TagController.getInstance("tag"));
+
 		putCtrlInMap(ctrlMap, ContentController.getInstance("content"));
 
 		putCtrlInMap(ctrlMap, HttpTestController.getInstance("httptest"));
+
+		putCtrlInMap(ctrlMap, ORGController.getInstance("org"));
+
+		putCtrlInMap(ctrlMap, VoteController.getInstance("vote"));
 
 		// putCtrlInMap(ctrlMap, StoreController.getInstance("store"));
 
@@ -83,9 +95,9 @@ public class MainVerticle extends AbstractVerticle {
 		String serverUrl = StringUtils.join("/", SERVER_NAME, "/*");
 
 		// 处理一个post方法的rest接口
-		router.post(serverUrl).handler(this::handleHttpRequest);
+		router.post("/*").handler(this::handleHttpRequest);
 		// 处理一个get方法的rest接口
-		router.get(serverUrl).handler(this::handleHttpRequest);
+		router.get("/*").handler(this::handleHttpRequest);
 
 		httpServer.requestHandler(router::accept);
 		httpServer.listen(8080, res -> {
@@ -103,7 +115,7 @@ public class MainVerticle extends AbstractVerticle {
 		HttpServerRequest req = context.request();
 		HttpServerResponse resp = context.response();
 
-		// System.out.println("handleHttpRequest");
+		System.out.println("handleHttpRequest");
 
 		resp.putHeader("content-type", "application/json;charset=UTF-8");
 		resp.putHeader("Access-Control-Allow-Origin", "*");// 设置跨域，目前不限制。TODO，将来需要设定指定的来源
@@ -153,8 +165,8 @@ public class MainVerticle extends AbstractVerticle {
 					resp.setStatusCode(404);
 					resp.setStatusMessage("missing controller method");
 				} else {
-					String node = nodes[1];
-					String method = nodes[2];
+					String node = nodes[startInd + 1];
+					String method = nodes[startInd + 2];
 					Controller ctrl = ctrlMap.get(node);
 					if (null != ctrl) {
 						try {

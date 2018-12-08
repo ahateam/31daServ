@@ -2,10 +2,9 @@ package zyxhj.core.domain;
 
 import java.util.Date;
 
-import zyxhj.org.cn.utils.data.rds.RDSAnnEntity;
-import zyxhj.org.cn.utils.data.rds.RDSAnnField;
-import zyxhj.org.cn.utils.data.rds.RDSAnnID;
-import zyxhj.org.cn.utils.data.rds.RDSAnnIndex;
+import zyxhj.utils.data.rds.RDSAnnEntity;
+import zyxhj.utils.data.rds.RDSAnnField;
+import zyxhj.utils.data.rds.RDSAnnID;
 
 /**
  * 权限模块，角色表</br>
@@ -31,6 +30,12 @@ public class UserRole {
 	/**
 	 * 角色名称
 	 */
-	@RDSAnnField(column = "VARCHAR(32)")
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
 	public String name;
+
+	/**
+	 * 备注
+	 */
+	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
+	public String remark;
 }

@@ -2,9 +2,9 @@ package zyxhj.cms.domain;
 
 import java.util.Date;
 
-import zyxhj.org.cn.utils.data.rds.RDSAnnEntity;
-import zyxhj.org.cn.utils.data.rds.RDSAnnField;
-import zyxhj.org.cn.utils.data.rds.RDSAnnID;
+import zyxhj.utils.data.rds.RDSAnnEntity;
+import zyxhj.utils.data.rds.RDSAnnField;
+import zyxhj.utils.data.rds.RDSAnnID;
 
 /**
  * 内容频道（专栏）实体

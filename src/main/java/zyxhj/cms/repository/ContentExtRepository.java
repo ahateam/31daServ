@@ -1,7 +1,7 @@
 package zyxhj.cms.repository;
 
 import zyxhj.cms.domain.ContentExt;
-import zyxhj.org.cn.utils.data.rds.RDSRepository;
+import zyxhj.utils.data.rds.RDSRepository;
 
 public class ContentExtRepository extends RDSRepository<ContentExt> {
 

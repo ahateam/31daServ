@@ -4,8 +4,8 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
 import zyxhj.core.domain.User;
-import zyxhj.org.cn.utils.api.ServerException;
-import zyxhj.org.cn.utils.data.rds.RDSRepository;
+import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.rds.RDSRepository;
 
 /**
  * 
@@ -25,11 +25,12 @@ public class UserRepository extends RDSRepository<User> {
 		super(User.class);
 	}
 
-	public JSONArray getTags(DruidPooledConnection conn, Long userId, String tagKey) throws ServerException {
+	public JSONArray getUserTags(DruidPooledConnection conn, Long userId, String tagKey) throws ServerException {
 		return this.getTags(conn, "tags", userId, tagKey);
 	}
 
-	public void addTags(DruidPooledConnection conn, Long userId, String tagKey, JSONArray tags) throws ServerException {
+	public void addUserTags(DruidPooledConnection conn, Long userId, String tagKey, JSONArray tags)
+			throws ServerException {
 		this.addTags(conn, "tags", userId, tagKey, tags);
 	}
 

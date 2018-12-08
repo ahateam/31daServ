@@ -24,8 +24,8 @@ import me.chanjar.weixin.mp.bean.result.WxMpUserList;
 import me.chanjar.weixin.mp.bean.store.WxMpStoreInfo;
 import me.chanjar.weixin.mp.bean.store.WxMpStoreListResult;
 import zyxhj.custom.util.HttpClientUtil;
-import zyxhj.org.cn.utils.CodecUtils;
-import zyxhj.org.cn.utils.api.Controller;
+import zyxhj.utils.CodecUtils;
+import zyxhj.utils.api.Controller;
 
 public class HttpTestController extends Controller {
 

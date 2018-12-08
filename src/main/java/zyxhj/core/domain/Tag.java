@@ -1,8 +1,8 @@
 package zyxhj.core.domain;
 
-import zyxhj.org.cn.utils.data.rds.RDSAnnEntity;
-import zyxhj.org.cn.utils.data.rds.RDSAnnField;
-import zyxhj.org.cn.utils.data.rds.RDSAnnID;
+import zyxhj.utils.data.rds.RDSAnnEntity;
+import zyxhj.utils.data.rds.RDSAnnField;
+import zyxhj.utils.data.rds.RDSAnnID;
 
 /**
  * 
@@ -10,6 +10,9 @@ import zyxhj.org.cn.utils.data.rds.RDSAnnID;
  */
 @RDSAnnEntity(alias = "tb_tag")
 public class Tag {
+
+	public static final Byte STATUS_ENABLED = 0; // 启用
+	public static final Byte STATUS_DISABLED = 1; // 禁用
 
 	/**
 	 * 标签编号
@@ -19,23 +22,20 @@ public class Tag {
 	public Long id;
 
 	/**
-	 * 大种类，用于标签自身的管理</br>
-	 * 小写英文
+	 * 状态
+	 */
+	@RDSAnnField(column = RDSAnnField.BYTE)
+	public Byte status;
+
+	/**
+	 * 分组关键字
 	 */
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String kind;
+	public String groupKeyword;
 
 	/**
-	 * 小类型，用于标签自身的管理</br>
-	 * 小写英文
-	 */
-	@RDSAnnID
-	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String type;
-
-	/**
-	 * 标签名称，用于显示和存储
+	 * 标签名称，用于展示阅读</br>
 	 */
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)

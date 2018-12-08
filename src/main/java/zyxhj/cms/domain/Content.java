@@ -2,9 +2,9 @@ package zyxhj.cms.domain;
 
 import java.util.Date;
 
-import zyxhj.org.cn.utils.data.rds.RDSAnnEntity;
-import zyxhj.org.cn.utils.data.rds.RDSAnnField;
-import zyxhj.org.cn.utils.data.rds.RDSAnnID;
+import zyxhj.utils.data.rds.RDSAnnEntity;
+import zyxhj.utils.data.rds.RDSAnnField;
+import zyxhj.utils.data.rds.RDSAnnID;
 
 /**
  * 
@@ -81,22 +81,6 @@ public class Content {
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_TITLE)
 	public String title;
-
-	/**
-	 * 来源，用来鉴别来源的地址，存储时需要简化，以免查询较慢</br>
-	 * 一般使用来源标记 + 来源唯一标识，如：</br>
-	 * youku.youkuId
-	 */
-	@RDSAnnField(column = "VARCHAR(128)")
-	public String origin;
-
-	/**
-	 * 内容元信息，例如电影是movie，电视剧是drama</br>
-	 * 英文字母，最长16位
-	 * 
-	 */
-	@RDSAnnField(column = "VARCHAR(16)")
-	public String meta;
 
 	/**
 	 * 数据</br>

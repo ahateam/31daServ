@@ -1,7 +1,7 @@
 package zyxhj.cms.repository;
 
 import zyxhj.cms.domain.Channel;
-import zyxhj.org.cn.utils.data.rds.RDSRepository;
+import zyxhj.utils.data.rds.RDSRepository;
 
 public class ChannelRepository extends RDSRepository<Channel> {
 

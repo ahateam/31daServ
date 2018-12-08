@@ -1,7 +1,7 @@
 package zyxhj.cms.repository;
 
 import zyxhj.core.domain.Tag;
-import zyxhj.org.cn.utils.data.rds.RDSRepository;
+import zyxhj.utils.data.rds.RDSRepository;
 
 public class ChannelTagRepository extends RDSRepository<Tag> {
 

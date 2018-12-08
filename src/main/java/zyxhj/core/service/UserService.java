@@ -1,6 +1,7 @@
 package zyxhj.core.service;
 
 import java.util.Date;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,15 +9,16 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
+import zyxhj.core.domain.LoginBo;
 import zyxhj.core.domain.User;
+import zyxhj.core.domain.UserRole;
 import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
-import zyxhj.core.repository.UserSessionRepository;
-import zyxhj.org.cn.utils.CacheCenter;
-import zyxhj.org.cn.utils.IDUtils;
-import zyxhj.org.cn.utils.api.BaseRC;
-import zyxhj.org.cn.utils.api.ServerException;
-import zyxhj.org.cn.utils.data.ots.OTSAutoCloseableClient;
+import zyxhj.core.repository.UserRoleRepository;
+import zyxhj.utils.CacheCenter;
+import zyxhj.utils.IDUtils;
+import zyxhj.utils.api.BaseRC;
+import zyxhj.utils.api.ServerException;
 
 public class UserService {
 
@@ -32,46 +34,60 @@ public class UserService {
 	}
 
 	private UserRepository userRepository;
-	private UserSessionRepository userSessionRepository;
+	private UserRoleRepository userRoleRepository;
 
 	private UserService() {
 		try {
 			userRepository = UserRepository.getInstance();
-			userSessionRepository = UserSessionRepository.getInstance();
+			userRoleRepository = UserRoleRepository.getInstance();
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
 	}
 
-	public UserSession putUserSession(OTSAutoCloseableClient client, Long userId, Byte userLevel, Date loginTime,
-			String loginToken) throws Exception {
+	public LoginBo login(DruidPooledConnection conn, User user) throws Exception {
+		Date loginTime = new Date();
+		UserSession userSession = putUserSession(user.id, loginTime, IDUtils.getHexSimpleId());
+
+		LoginBo ret = new LoginBo();
+		ret.id = user.id;
+		ret.name = user.name;
+		ret.nickname = user.nickname;
+		ret.signature = user.signature;
+
+		ret.roles = user.roles;
+
+		ret.loginTime = userSession.loginTime;
+		ret.loginToken = userSession.loginToken;
+
+		return ret;
+	}
+
+	public UserSession putUserSession(Long userId, Date loginTime, String loginToken) throws Exception {
 
 		UserSession ret = new UserSession();
 		ret.userId = userId;
-		ret.level = userLevel;
 		ret.loginTime = loginTime;
 		ret.loginToken = loginToken;
 
 		// 先放入Session缓存，再放入存储
 		CacheCenter.SESSION_CACHE.put(userId, ret);
-		userSessionRepository.putObject(client, ret, true);
 		return ret;
 	}
 
-	public UserSession getUserSession(OTSAutoCloseableClient client, Long userId) throws Exception {
+	public UserSession getUserSession(Long userId) throws Exception {
 		// 先从缓存中获取
 		UserSession session = null;
 		try {
 			session = CacheCenter.SESSION_CACHE.get(userId);
 		} catch (Exception e) {
-			session = userSessionRepository.getByKey(client, userId);
+			return null;
 		}
 		return session;
 	}
 
-	public void clearUserSessionById(OTSAutoCloseableClient client, Long userId) throws Exception {
+	public void clearUserSessionById(Long userId) throws Exception {
 		CacheCenter.SESSION_CACHE.invalidate(userId);
-		userSessionRepository.deleteByKey(client, userId);
 	}
 
 	/**
@@ -85,22 +101,29 @@ public class UserService {
 	 * @return 刚注册的用户对象
 	 */
 	public User registByNameAndPwd(DruidPooledConnection conn, String name, String pwd) throws Exception {
-		// 用户不存在
-		User newUser = new User();
-		newUser.id = IDUtils.getSimpleId();
-		newUser.createDate = new Date();
-		newUser.level = User.LEVEL_BASIC;
-		newUser.name = name;
+		// 判断用户是否存在
+		User existUser = userRepository.getByKey(conn, "name", name);
+		if (null == existUser) {
+			// 用户不存在
+			User newUser = new User();
+			newUser.id = IDUtils.getSimpleId();
+			newUser.createDate = new Date();
+			newUser.name = name;
 
-		newUser.pwd = pwd;// TODO 目前是明文，需要加料传输和存储
+			newUser.pwd = pwd;// TODO 目前是明文，需要加料传输和存储
 
-		// 创建用户
-		userRepository.insert(conn, newUser);
-		newUser.pwd = null;// 抹掉密码
-		return newUser;
+			// 创建用户
+			userRepository.insert(conn, newUser);
+			newUser.pwd = null;// 抹掉密码
+			return newUser;
+
+		} else {
+			// 用户已存在
+			throw new ServerException(BaseRC.USER_EXIST);
+		}
 	}
 
-	public User loginByNameAndPwd(DruidPooledConnection conn, String name, String pwd) throws Exception {
+	public LoginBo loginByNameAndPwd(DruidPooledConnection conn, String name, String pwd) throws Exception {
 		// 判断用户是否存在
 		User existUser = userRepository.getByKey(conn, "name", name);
 		if (null == existUser) {
@@ -110,7 +133,7 @@ public class UserService {
 			// 用户已存在，匹配密码
 			// TODO 目前是明文，需要加料然后匹配
 			if (pwd.equals(existUser.pwd)) {
-				return existUser;
+				return login(conn, existUser);
 			} else {
 				// 密码错误
 				throw new ServerException(BaseRC.USER_PWD_ERROR);
@@ -195,15 +218,34 @@ public class UserService {
 	}
 
 	public JSONArray getUserTags(DruidPooledConnection conn, Long userId, String tagKey) throws Exception {
-		return userRepository.getTags(conn, userId, tagKey);
+		return userRepository.getUserTags(conn, userId, tagKey);
 	}
 
 	public void addUserTags(DruidPooledConnection conn, Long userId, String tagKey, JSONArray tags) throws Exception {
-		userRepository.addTags(conn, userId, tagKey, tags);
+		userRepository.addUserTags(conn, userId, tagKey, tags);
 	}
 
 	public void removeUserTags(DruidPooledConnection conn, Long userId, String tagKey, JSONArray tags)
 			throws Exception {
 		userRepository.removeTags(conn, userId, tagKey, tags);
 	}
+
+	public void createUserRole(DruidPooledConnection conn, String name, String remark) throws Exception {
+		createUserRole(conn, IDUtils.getSimpleId(), name, remark);
+	}
+
+	public void createUserRole(DruidPooledConnection conn, Long id, String name, String remark) throws Exception {
+		UserRole userRole = new UserRole();
+		userRole.id = id;
+		userRole.createDate = new Date();
+		userRole.name = name;
+		userRole.remark = remark;
+
+		userRoleRepository.insert(conn, userRole);
+	}
+
+	public List<UserRole> getUserRoles(DruidPooledConnection conn) throws Exception {
+		return userRoleRepository.getList(conn, 512, 0);
+	}
+
 }

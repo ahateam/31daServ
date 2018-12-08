@@ -1,7 +1,5 @@
 package zyxhj.core.controller;
 
-import java.util.Date;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,16 +8,14 @@ import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.core.domain.LoginBo;
 import zyxhj.core.domain.User;
-import zyxhj.core.domain.UserSession;
 import zyxhj.core.service.UserService;
-import zyxhj.org.cn.utils.IDUtils;
-import zyxhj.org.cn.utils.api.APIRequest;
-import zyxhj.org.cn.utils.api.APIResponse;
-import zyxhj.org.cn.utils.api.Controller;
-import zyxhj.org.cn.utils.api.Param;
-import zyxhj.org.cn.utils.data.DataSource;
-import zyxhj.org.cn.utils.data.DataSourceUtils;
-import zyxhj.org.cn.utils.data.ots.OTSAutoCloseableClient;
+import zyxhj.utils.IDUtils;
+import zyxhj.utils.api.APIRequest;
+import zyxhj.utils.api.APIResponse;
+import zyxhj.utils.api.Controller;
+import zyxhj.utils.api.Param;
+import zyxhj.utils.data.DataSource;
+import zyxhj.utils.data.DataSourceUtils;
 
 public class UserController extends Controller {
 
@@ -35,14 +31,12 @@ public class UserController extends Controller {
 	}
 
 	private DataSource dsRds;
-	private DataSource dsOts;
 	private UserService userService;
 
 	private UserController(String node) {
 		super(node);
 		try {
 			dsRds = DataSourceUtils.getDataSource("rdsDefault");
-			dsOts = DataSourceUtils.getDataSource("otsDefault");
 
 			userService = UserService.getInstance();
 		} catch (Exception e) {
@@ -71,24 +65,6 @@ public class UserController extends Controller {
 		}
 	}
 
-	private LoginBo login(DruidPooledConnection conn, OTSAutoCloseableClient client, User user) throws Exception {
-		Date loginTime = new Date();
-		UserSession userSession = userService.putUserSession(client, user.id, user.level, loginTime,
-				IDUtils.getHexSimpleId());
-
-		LoginBo ret = new LoginBo();
-		ret.id = user.id;
-		ret.level = user.level;
-		ret.name = user.name;
-		ret.nickname = user.nickname;
-		ret.signature = user.signature;
-
-		ret.loginTime = userSession.loginTime;
-		ret.loginToken = userSession.loginToken;
-
-		return ret;
-	}
-
 	/**
 	 * 用户名密码注册
 	 * 
@@ -106,11 +82,10 @@ public class UserController extends Controller {
 		String name = Param.getString(c, "name");
 		String pwd = Param.getString(c, "pwd");
 
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection();
-				OTSAutoCloseableClient client = (OTSAutoCloseableClient) dsOts.openConnection()) {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection();) {
 			User user = userService.registByNameAndPwd(conn, name, pwd);
 			// 如果成功注册，则写入Session后，返回LoginBo
-			LoginBo loginBo = login(conn, client, user);
+			LoginBo loginBo = userService.login(conn, user);
 			// 返回登录业务对象
 			return APIResponse.getNewSuccessResp(loginBo);
 		}
@@ -132,18 +107,16 @@ public class UserController extends Controller {
 		String name = Param.getString(c, "name");
 		String pwd = Param.getString(c, "pwd");
 
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection();
-				OTSAutoCloseableClient client = (OTSAutoCloseableClient) dsOts.openConnection()) {
-			User user = userService.loginByNameAndPwd(conn, name, pwd);
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			// 如果成功登录，则写入Session后，返回LoginBo
-			LoginBo loginBo = login(conn, client, user);
+			LoginBo loginBo = userService.loginByNameAndPwd(conn, name, pwd);
 			// 返回登录业务对象
 			return APIResponse.getNewSuccessResp(loginBo);
 		}
 	}
 
 	/**
-	 * 用户名密码登录
+	 * 匿名登录
 	 * 
 	 * @return LoginBO 业务对象，包含用户session等相关
 	 */
@@ -154,14 +127,12 @@ public class UserController extends Controller {
 		// 构造匿名user
 		User anonymous = new User();
 		anonymous.id = IDUtils.getSimpleId();
-		anonymous.level = User.LEVEL_ANONYMOUS;
-		anonymous.name = "anonymous";
-		anonymous.nickname = "";
+		anonymous.name = "游客";
+		anonymous.nickname = "孙悟空到此一游";
 
 		// 写入匿名用户Session后，返回LoginBo
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection();
-				OTSAutoCloseableClient client = (OTSAutoCloseableClient) dsOts.openConnection()) {
-			LoginBo loginBo = login(conn, client, anonymous);
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			LoginBo loginBo = userService.login(conn, anonymous);
 			return APIResponse.getNewSuccessResp(loginBo);
 		}
 	}

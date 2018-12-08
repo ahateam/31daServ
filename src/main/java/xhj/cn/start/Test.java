@@ -3,10 +3,10 @@ package xhj.cn.start;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 
-import zyxhj.cms.domain.Content;
-import zyxhj.org.cn.utils.data.DataSource;
-import zyxhj.org.cn.utils.data.DataSourceUtils;
-import zyxhj.org.cn.utils.data.rds.RDSUtils;
+import zyxhj.economy.domain.VoteOption;
+import zyxhj.utils.data.DataSource;
+import zyxhj.utils.data.DataSourceUtils;
+import zyxhj.utils.data.rds.RDSUtils;
 
 public class Test {
 
@@ -36,7 +36,7 @@ public class Test {
 
 			// RDSUtils.dropTableByEntity(dsRds, Tunnel.class);
 
-			RDSUtils.createTableByEntity(dsRds, Content.class);
+//			RDSUtils.createTableByEntity(dsRds, VoteOption.class);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

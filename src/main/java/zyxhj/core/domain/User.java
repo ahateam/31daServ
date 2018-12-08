@@ -2,36 +2,13 @@ package zyxhj.core.domain;
 
 import java.util.Date;
 
-import zyxhj.org.cn.utils.data.rds.RDSAnnEntity;
-import zyxhj.org.cn.utils.data.rds.RDSAnnField;
-import zyxhj.org.cn.utils.data.rds.RDSAnnID;
-import zyxhj.org.cn.utils.data.rds.RDSAnnIndex;
+import zyxhj.utils.data.rds.RDSAnnEntity;
+import zyxhj.utils.data.rds.RDSAnnField;
+import zyxhj.utils.data.rds.RDSAnnID;
+import zyxhj.utils.data.rds.RDSAnnIndex;
 
 @RDSAnnEntity(alias = "tb_user")
 public class User {
-
-	/**
-	 * 匿名用户
-	 */
-	public static final Byte LEVEL_ANONYMOUS = 0;
-	/**
-	 * 基础用户（只是注册，没有付费等行为）
-	 */
-	public static final Byte LEVEL_BASIC = 1;
-	/**
-	 * 会员(1个月)
-	 */
-	public static final Byte LEVEL_MEMBER = 2;
-
-	/**
-	 * 高级会员（3个月）
-	 */
-	public static final Byte LEVEL_MEMBER1 = 3;
-
-	/**
-	 * 顶级会员（1年）
-	 */
-	public static final Byte LEVEL_MEMBER2 = 4;
 
 	public static final Byte STATUS_PENDING = -1; // 待审核
 	public static final Byte STATUS_NORMAL = 0; // 正常
@@ -52,25 +29,17 @@ public class User {
 	public Date createDate;
 
 	/**
-	 * 用户等级</br>
-	 * 目前只分基本用户（BASIC）和会员用户（MEMBER）两种
-	 */
-	@RDSAnnField(column = RDSAnnField.BYTE)
-	public Byte level;
-
-	/**
-	 * 用户类型</br>
-	 * 预留给应用区分用户类型
-	 */
-	@RDSAnnField(column = RDSAnnField.BYTE)
-	public Byte type;
-
-	/**
 	 * 用户名（索引）
 	 */
 	@RDSAnnIndex(type = RDSAnnIndex.UNIQUE)
-	@RDSAnnField(column = "VARCHAR(32)")
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
 	public String name;
+
+	/**
+	 * 用户真名
+	 */
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
+	public String realName;
 
 	/**
 	 * 手机号（索引）
@@ -83,7 +52,7 @@ public class User {
 	 * 邮箱（索引）
 	 */
 	@RDSAnnIndex(type = RDSAnnIndex.UNIQUE)
-	@RDSAnnField(column = "VARCHAR(32)")
+	@RDSAnnField(column = "VARCHAR(64)")
 	public String email;
 
 	/**
@@ -132,10 +101,30 @@ public class User {
 	public String signature;
 
 	/**
+	 * 身份证号
+	 */
+	@RDSAnnField(column = "VARCHAR(32)")
+	public String idNumber;
+
+	/**
+	 * 用户角色列表</br>
+	 * 静态JSON数组格式存储，不使用SQL的JSON格式
+	 */
+	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
+	public String roles;
+
+	/**
 	 * 牛逼的JSON</br>
 	 * 
 	 */
 	@RDSAnnField(column = RDSAnnField.JSON)
 	public String tags;
+
+	/**
+	 * 牛逼的JSON</br>
+	 * 
+	 */
+	@RDSAnnField(column = RDSAnnField.JSON)
+	public String ext;
 
 }

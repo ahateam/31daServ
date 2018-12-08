@@ -21,8 +21,8 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
 import zyxhj.custom.service.WxDataService;
 import zyxhj.custom.service.WxFuncService;
 import zyxhj.custom.util.HttpClientUtil;
-import zyxhj.org.cn.utils.CodecUtils;
-import zyxhj.org.cn.utils.api.Controller;
+import zyxhj.utils.CodecUtils;
+import zyxhj.utils.api.Controller;
 
 public class WxEventController extends Controller {
 

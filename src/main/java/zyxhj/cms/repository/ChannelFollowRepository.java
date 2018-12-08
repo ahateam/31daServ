@@ -3,7 +3,7 @@ package zyxhj.cms.repository;
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.cms.domain.ChannelFollow;
-import zyxhj.org.cn.utils.data.rds.RDSRepository;
+import zyxhj.utils.data.rds.RDSRepository;
 
 public class ChannelFollowRepository extends RDSRepository<ChannelFollow> {
 

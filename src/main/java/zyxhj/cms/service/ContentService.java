@@ -8,16 +8,13 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.cms.domain.Content;
 import zyxhj.cms.repository.ContentExtRepository;
 import zyxhj.cms.repository.ContentRepository;
-import zyxhj.core.domain.Tag;
-import zyxhj.core.repository.TagRepository;
-import zyxhj.org.cn.utils.IDUtils;
-import zyxhj.org.cn.utils.api.BaseRC;
-import zyxhj.org.cn.utils.api.ServerException;
+import zyxhj.utils.IDUtils;
+import zyxhj.utils.api.BaseRC;
+import zyxhj.utils.api.ServerException;
 
 public class ContentService {
 
@@ -33,13 +30,11 @@ public class ContentService {
 	}
 
 	private ContentRepository contentRepository;
-	private TagRepository tagRepository;
 	private ContentExtRepository contentExtRepository;
 
 	private ContentService() {
 		try {
 			contentRepository = ContentRepository.getInstance();
-			tagRepository = TagRepository.getInstance();
 			contentExtRepository = ContentExtRepository.getInstance();
 
 		} catch (Exception e) {
@@ -66,7 +61,7 @@ public class ContentService {
 	 * 创建内容
 	 */
 	public Content createContent(DruidPooledConnection conn, Byte type, Byte level, Long upUserId, Long upChannelId,
-			String title, String origin, String meta, String data) throws Exception {
+			String title, String data) throws Exception {
 
 		Content c = new Content();
 
@@ -82,8 +77,6 @@ public class ContentService {
 		c.upChannelId = upChannelId;
 
 		c.title = title;
-		c.origin = origin;
-		c.meta = meta;
 		c.data = data;
 		c.tags = "{}";// 设置为JSON数组的空格式，否则后续的编辑操作会没效果（可能是MYSQL的bug）
 
@@ -105,9 +98,10 @@ public class ContentService {
 	 * 根据标签查询内容
 	 */
 	public List<Content> queryContents(DruidPooledConnection conn, Byte type, Byte status, Byte level, Long upUserId,
-			Long upChannelId, String tagKey, JSONArray tags, Integer count, Integer offset) throws Exception {
-		return contentRepository.queryContents(conn, type, status, level, upUserId, upChannelId, tagKey, tags, count,
-				offset);
+			Long upChannelId, String tagKind, String tagType, JSONArray tags, Integer count, Integer offset)
+			throws Exception {
+		return contentRepository.queryContents(conn, type, status, level, upUserId, upChannelId, tagKind, tagType, tags,
+				count, offset);
 	}
 
 	/**
@@ -128,63 +122,25 @@ public class ContentService {
 	 * 读取内容对应的标签
 	 * 
 	 */
-	public JSONArray getContentTags(DruidPooledConnection conn, Long contentId, String tagType) throws Exception {
-		return contentRepository.getContentTags(conn, contentId, tagType);
+	public JSONArray getContentTags(DruidPooledConnection conn, Long contentId, String tagKind, String tagType)
+			throws Exception {
+		return contentRepository.getContentTags(conn, contentId, tagKind, tagType);
 	}
 
 	/**
 	 * 为内容添加标签
 	 */
-	public void addContentTags(DruidPooledConnection conn, Long contentId, String type, JSONArray tags)
-			throws Exception {
-		contentRepository.addContentTags(conn, contentId, type, tags);
+	public void addContentTags(DruidPooledConnection conn, Long contentId, String tagKind, String tagType,
+			JSONArray tags) throws Exception {
+		contentRepository.addContentTags(conn, contentId, tagKind, tagType, tags);
 	}
 
 	/**
 	 * 移除内容的标签
 	 */
-	public void removeContentTags(DruidPooledConnection conn, Long contentId, String tagKey, JSONArray tags)
-			throws Exception {
-		contentRepository.removeContentTags(conn, contentId, tagKey, tags);
-	}
-
-	/**
-	 * 创建标签
-	 */
-	public Tag createContentTag(DruidPooledConnection conn, String kind, String type, String name) throws Exception {
-		Tag ct = new Tag();
-
-		ct.id = IDUtils.getSimpleId();
-		ct.type = type;
-		ct.kind = kind;
-		ct.type = type;
-		ct.name = name;
-
-		tagRepository.insert(conn, ct);
-
-		return ct;
-	}
-
-	/**
-	 * 获得某应用内容对应的全部标签</br>
-	 * 并以key对应的JSON对象数组形式返回，例如：</br>
-	 * {tag:["动作","喜剧"],actor:["刘烨","章子怡"]}
-	 */
-	public JSONObject getTagsByType(DruidPooledConnection conn, String type) throws Exception {
-		List<Tag> tags = tagRepository.getListByKey(conn, "type", type, 512, 0);
-
-		JSONObject ret = new JSONObject();
-		for (Tag t : tags) {
-			JSONArray ja = ret.getJSONArray(t.type);
-			if (null == ja) {
-				ja = new JSONArray();
-				ja.add(t.name);
-				ret.put(t.type, ja);
-			} else {
-				ja.add(t.name);
-			}
-		}
-		return ret;
+	public void removeContentTags(DruidPooledConnection conn, Long contentId, String tagKind, String tagType,
+			JSONArray tags) throws Exception {
+		contentRepository.removeContentTags(conn, contentId, tagKind, tagType, tags);
 	}
 
 }

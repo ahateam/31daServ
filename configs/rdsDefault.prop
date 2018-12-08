@@ -10,6 +10,7 @@ password:Aa123456Aa
 
 filters:stat
 
+useSSL:false
 maxActive:300
 initialSize:2
 maxWait:60000
