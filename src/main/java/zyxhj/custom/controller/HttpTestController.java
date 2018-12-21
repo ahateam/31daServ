@@ -13,8 +13,6 @@ import com.alibaba.fastjson.JSONObject;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
-import me.chanjar.weixin.common.bean.menu.WxMenu;
-import me.chanjar.weixin.common.bean.menu.WxMenuButton;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpInMemoryConfigStorage;
 import me.chanjar.weixin.mp.api.WxMpService;
@@ -22,7 +20,6 @@ import me.chanjar.weixin.mp.api.impl.WxMpServiceImpl;
 import me.chanjar.weixin.mp.bean.card.WxMpCardQrcodeCreateResult;
 import me.chanjar.weixin.mp.bean.result.WxMpUserList;
 import me.chanjar.weixin.mp.bean.store.WxMpStoreInfo;
-import me.chanjar.weixin.mp.bean.store.WxMpStoreListResult;
 import zyxhj.custom.util.HttpClientUtil;
 import zyxhj.utils.CodecUtils;
 import zyxhj.utils.api.Controller;
@@ -62,32 +59,31 @@ public class HttpTestController extends Controller {
 	/*
 	 * 获取用户列表（test）
 	 */
-	@GET(path = "getTest")
+	@GET(path = "getTest", //
+			des = "GET测试"//
+	)
 	public void getTest(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {
 		WxMpUserList wxUserList = wxMpService.getUserService().userList(null);
 		ret(resp, wxUserList.toString());
 
-//		WxMenu wxMenu = new WxMenu();
-//		WxMenuButton button = new WxMenuButton();
-//		button.setType("view");
-//		button.setName("test");
-//		button.setUrl("http://aha-element.oss-cn-hangzhou.aliyuncs.com/index.html");
-//		List<WxMenuButton> list = new ArrayList<WxMenuButton>();
-//		list.add(button);
-//		wxMenu.setButtons(list);
-//		// 设置菜单
-//		wxMpService.getMenuService().menuCreate(wxMenu);
+		// WxMenu wxMenu = new WxMenu();
+		// WxMenuButton button = new WxMenuButton();
+		// button.setType("view");
+		// button.setName("test");
+		// button.setUrl("http://aha-element.oss-cn-hangzhou.aliyuncs.com/index.html");
+		// List<WxMenuButton> list = new ArrayList<WxMenuButton>();
+		// list.add(button);
+		// wxMenu.setButtons(list);
+		// // 设置菜单
+		// wxMpService.getMenuService().menuCreate(wxMenu);
 
 	}
 
 	/**
-	 * @描述 获取卡券列表
-	 * @param req
-	 * @param resp
-	 * @param context
-	 * @throws Exception
 	 */
-	@GET(path = "getTest2")
+	@GET(path = "getTest2", //
+			des = "GET测试2"//
+	)
 	public void getTest2(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {
 		Map<String, Object> map = new HashMap<String, Object>();
 		List<String> list = new ArrayList<String>();
@@ -105,13 +101,10 @@ public class HttpTestController extends Controller {
 	}
 
 	/**
-	 * @描述 获取卡卷二维码（test）
-	 * @param req
-	 * @param resp
-	 * @param context
-	 * @throws WxErrorException
 	 */
-	@GET(path = "getTest3")
+	@GET(path = "getTest3", //
+			des = "GET测试3"//
+	)
 	public void getTest3(HttpServerRequest req, HttpServerResponse resp, RoutingContext context)
 			throws WxErrorException {
 		WxMpCardQrcodeCreateResult card = wxMpService.getCardService().createQrcodeCard("pu_IQ1WJyDNTTcnd6Z53H3eMFNvI",
@@ -120,13 +113,10 @@ public class HttpTestController extends Controller {
 	}
 
 	/**
-	 * @描述 查看卡卷详情（test）
-	 * @param req
-	 * @param resp
-	 * @param context
-	 * @throws WxErrorException
 	 */
-	@GET(path = "getTest4")
+	@GET(path = "getTest4", //
+			des = "GET测试4"//
+	)
 	public void getTest4(HttpServerRequest req, HttpServerResponse resp, RoutingContext context)
 			throws WxErrorException {
 		String detail = wxMpService.getCardService().getCardDetail("pu_IQ1WJyDNTTcnd6Z53H3eMFNvI");
@@ -134,13 +124,10 @@ public class HttpTestController extends Controller {
 	}
 
 	/**
-	 * @描述 门店列表（test5）
-	 * @param req
-	 * @param resp
-	 * @param context
-	 * @throws WxErrorException
 	 */
-	@GET(path = "getTest5")
+	@GET(path = "getTest5", //
+			des = "GET测试5"//
+	)
 	public void getTest5(HttpServerRequest req, HttpServerResponse resp, RoutingContext context)
 			throws WxErrorException {
 		List<WxMpStoreInfo> list = wxMpService.getStoreService().listAll();

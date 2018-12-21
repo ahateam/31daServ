@@ -51,10 +51,12 @@ public class WxOAuth2Controller extends Controller {
 	/*
 	 * 添加子菜单test
 	 */
-	@GET(path = "addMenu")
+	@GET(path = "addMenu", //
+			des = "添加子菜单"//
+	)
 	public void getTest(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {
-//		WxMpUserList wxUserList = wxMpService.getUserService().userList(null);
-//		ret(resp, wxUserList.toString());
+		// WxMpUserList wxUserList = wxMpService.getUserService().userList(null);
+		// ret(resp, wxUserList.toString());
 		String url = "http://3ch.org.cn/start/oauth/getAccessToken";
 		String url2 = wxFuncService.getUrl(wxDataService.getWxMpService(), url);
 		WxMenu wxMenu = new WxMenu();
@@ -73,7 +75,9 @@ public class WxOAuth2Controller extends Controller {
 	/*
 	 * 消息群发
 	 */
-	@GET(path = "messageToMany")
+	@GET(path = "messageToMany", //
+			des = "消息群发"//
+	)
 	public void messageToMany(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {
 		WxMpUserList userList = wxFuncService.getTest(wxDataService.getWxMpService());
 		wxFuncService.messageToMany(wxDataService.getWxMpService(), userList.getOpenids());
@@ -82,7 +86,9 @@ public class WxOAuth2Controller extends Controller {
 	/*
 	 * 模板消息发送测试
 	 */
-	@GET(path = "templateMessage")
+	@GET(path = "templateMessage", //
+			des = "模版消息发送"//
+	)
 	public void templateMessage(HttpServerRequest req, HttpServerResponse resp, RoutingContext context)
 			throws Exception {
 		wxFuncService.templateMessageTest(wxDataService.getWxMpService());
@@ -99,21 +105,27 @@ public class WxOAuth2Controller extends Controller {
 	/*
 	 * 根据用户反馈授权获取对应token
 	 */
-	@GET(path = "getAccessToken")
-	public void getAccessToken(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {
+	@GET(path = "getAccessToken", //
+			des = "根据用户反馈授权，获取token"//
+	)
+	public void getAccessToken(HttpServerRequest req, HttpServerResponse resp, RoutingContext context)
+			throws Exception {
 		System.err.println("test：    get assesstoken");
 		String code = req.getParam("code");
-		System.err.println("code：    "+code);
+		System.err.println("code：    " + code);
 		WxMpOAuth2AccessToken wxMpOAuth2AccessToken = wxDataService.getWxMpService().oauth2getAccessToken(code);
 		WxMpUser wxMpUser = wxDataService.getWxMpService().oauth2getUserInfo(wxMpOAuth2AccessToken, null);
 		System.err.println(wxMpUser.getOpenId());
 	}
-	
+
 	/*
 	 * 获取二维码
 	 */
-	@GET(path = "getTicket")
-	public APIResponse getTicket(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {
+	@GET(path = "getTicket", //
+			des = "获取二维码"//
+	)
+	public APIResponse getTicket(HttpServerRequest req, HttpServerResponse resp, RoutingContext context)
+			throws Exception {
 		File ticket = wxFuncService.getTicket(wxDataService.getWxMpService(), "123456");
 		return APIResponse.getNewSuccessResp(ticket);
 	}

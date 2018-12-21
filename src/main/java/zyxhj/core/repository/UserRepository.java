@@ -38,4 +38,5 @@ public class UserRepository extends RDSRepository<User> {
 			throws ServerException {
 		this.removeTags(conn, "tags", userId, tagKey, tags);
 	}
+
 }

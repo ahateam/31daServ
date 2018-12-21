@@ -9,6 +9,7 @@ import zyxhj.economy.domain.ORG;
 import zyxhj.economy.domain.ORGRole;
 import zyxhj.economy.domain.Vote;
 import zyxhj.economy.domain.VoteOption;
+import zyxhj.economy.domain.VoteProject;
 import zyxhj.economy.domain.VoteTicket;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
@@ -55,10 +56,11 @@ public class Initializer {
 
 		RDSUtils.createTableByEntity(dsRds, ORG.class);
 		RDSUtils.createTableByEntity(dsRds, ORGRole.class);
+		RDSUtils.createTableByEntity(dsRds, VoteProject.class);
 		RDSUtils.createTableByEntity(dsRds, Vote.class);
 		RDSUtils.createTableByEntity(dsRds, VoteOption.class);
 		RDSUtils.createTableByEntity(dsRds, VoteTicket.class);
-
+		
 	}
 
 	private static void initData(DruidPooledConnection conn) {

@@ -258,7 +258,7 @@ public abstract class RDSRepository<T> {
 		Object[] total = new Object[totalCount];
 		System.arraycopy(setParams, 0, total, 0, setParams.length);
 		System.arraycopy(whereParams, 0, total, setParams.length, whereParams.length);
-		System.out.println(sql);
+		// System.out.println(sql);
 		PreparedStatement ps = prepareStatement(conn, sql.toString(), total);
 		int count = 0;
 		try {
@@ -275,7 +275,60 @@ public abstract class RDSRepository<T> {
 			} catch (Exception e) {
 			}
 		}
+	}
 
+	/**
+	 * 模版方法，根据某个唯一键值的某些值，更新这些值所对应的对象</br>
+	 * 
+	 * @param conn
+	 *            连接对象
+	 * @param key
+	 *            列名
+	 * @param values
+	 *            值数组（字符串，在外部转换好再放进来，防止隐式转换出问题）
+	 * @param set
+	 *            SQL的SET从句字符串
+	 * @param setParams
+	 *            SET从句的参数
+	 * @return 返回影响的记录数
+	 * 
+	 * @throws ServerException
+	 */
+	protected int updateKeyInValues(DruidPooledConnection conn, String key, String[] values, String set,
+			Object[] setParams) throws ServerException {
+		StringBuilder sql = new StringBuilder("UPDATE ").append(mapper.getTableName());
+		if (StringUtils.isNotBlank(set)) {
+			sql.append(BLANK).append(set);
+		} else {
+			// 更新操作 set不能为空
+			throw new ServerException(BaseRC.REPOSITORY_SQL_PREPARE_ERROR, "set not null");
+		}
+		sql.append(" WHERE ");
+		sql.append(key).append(" IN (");
+		if (setParams != null && setParams.length > 0) {
+			for (Object oo : setParams) {
+				sql.append("?,");
+			}
+			sql.deleteCharAt(sql.length() - 1);
+		}
+		sql.append(")");
+		// System.out.println(sql.toString());
+		PreparedStatement ps = prepareStatement(conn, sql.toString(), values);
+		int count = 0;
+		try {
+			count = ps.executeUpdate();
+			return count;
+		} catch (Exception e) {
+			throw new ServerException(BaseRC.REPOSITORY_SQL_EXECUTE_ERROR, e.getMessage());
+		} finally {
+			if (count <= 0) {
+				throw new ServerException(BaseRC.REPOSITORY_UPDATE_ERROR, "nothing changed");
+			}
+			try {
+				ps.close();
+			} catch (Exception e) {
+			}
+		}
 	}
 
 	/**

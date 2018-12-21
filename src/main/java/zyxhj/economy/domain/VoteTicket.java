@@ -34,18 +34,18 @@ public class VoteTicket {
 	public Date voteTime;
 
 	/**
+	 * 用户的选票数
+	 */
+	@RDSAnnField(column = RDSAnnField.INTEGER)
+	public Integer ballotCount;
+
+	/**
 	 * 选择（单选，多选）</br>
 	 * option编号列表</br>
 	 * 静态JSON数组格式存储，不使用SQL的JSON格式
 	 */
 	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
 	public String selection;
-
-	/**
-	 * 用户的权重
-	 */
-	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer weight;
 
 	/**
 	 * 备注

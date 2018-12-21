@@ -90,8 +90,14 @@
 
 		<dependency>
 			<groupId>io.vertx</groupId>
+			<artifactId>vertx-web-templ-pebble</artifactId>
+			<version>3.6.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web</artifactId>
-			<version>3.5.4</version>
+			<version>3.6.2</version>
 		</dependency>
 
 		<dependency>
@@ -106,6 +112,12 @@
 			<artifactId>druid</artifactId>
 			<version>1.1.12</version>
 		</dependency>
+
+		<!-- <dependency> <groupId>io.pebbletemplates</groupId> <artifactId>pebble</artifactId> 
+			<version>3.0.6</version> </dependency> -->
+
+
+
 
 		<dependency>
 			<groupId>com.github.binarywang</groupId>
@@ -124,7 +136,6 @@
 		</dependency>
 
 
-
 	</dependencies>
 
 	<build>
@@ -136,7 +147,7 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-					<compilerArgument>-Xlint:unchecked</compilerArgument>
+					<compilerArgument>-parameters</compilerArgument>
 				</configuration>
 			</plugin>
 

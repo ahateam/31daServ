@@ -9,19 +9,17 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.templ.pebble.PebbleTemplateEngine;
 import zyxhj.cms.controller.ContentController;
 import zyxhj.core.controller.TagController;
 import zyxhj.core.controller.TestController;
@@ -29,7 +27,7 @@ import zyxhj.core.controller.UserController;
 import zyxhj.custom.controller.HttpTestController;
 import zyxhj.economy.controller.ORGController;
 import zyxhj.economy.controller.VoteController;
-import zyxhj.utils.CodecUtils;
+import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSourceUtils;
 
@@ -37,7 +35,16 @@ public class MainVerticle extends AbstractVerticle {
 
 	private static final String SERVER_NAME = "zero";
 
+	private static final String PATH_ASSET = "-assets";
+
 	protected Map<String, Controller> ctrlMap;
+
+	private PebbleTemplateEngine engine;
+
+	public static void main(String[] args) {
+		Vertx vertx = Vertx.vertx();
+		vertx.deployVerticle(new MainVerticle());
+	}
 
 	public void init() {
 
@@ -45,27 +52,26 @@ public class MainVerticle extends AbstractVerticle {
 
 		ctrlMap = new HashMap<>();
 
-		putCtrlInMap(ctrlMap, TestController.getInstance("test"));
+		initCtrl(ctrlMap, TestController.getInstance("test"));
 
-		putCtrlInMap(ctrlMap, UserController.getInstance("user"));
+		initCtrl(ctrlMap, UserController.getInstance("user"));
 
-		putCtrlInMap(ctrlMap, TagController.getInstance("tag"));
+		initCtrl(ctrlMap, TagController.getInstance("tag"));
 
-		putCtrlInMap(ctrlMap, ContentController.getInstance("content"));
+		initCtrl(ctrlMap, ContentController.getInstance("content"));
 
-		putCtrlInMap(ctrlMap, HttpTestController.getInstance("httptest"));
+		initCtrl(ctrlMap, HttpTestController.getInstance("httptest"));
 
-		putCtrlInMap(ctrlMap, ORGController.getInstance("org"));
+		initCtrl(ctrlMap, ORGController.getInstance("org"));
 
-		putCtrlInMap(ctrlMap, VoteController.getInstance("vote"));
+		initCtrl(ctrlMap, VoteController.getInstance("vote"));
 
 		// putCtrlInMap(ctrlMap, StoreController.getInstance("store"));
 
 	}
 
-	public static void main(String[] args) {
-		Vertx vertx = Vertx.vertx();
-		vertx.deployVerticle(new MainVerticle());
+	private void initCtrl(Map<String, Controller> map, Controller ctrl) {
+		map.put(ctrl.getNode(), ctrl);
 	}
 
 	public void start() {
@@ -91,15 +97,12 @@ public class MainVerticle extends AbstractVerticle {
 		Router router = Router.router(vertx);
 		// 增加一个处理器，将请求的上下文信息，放到RoutingContext中
 		router.route().handler(BodyHandler.create());
+		router.route("/*").handler(this::handleHttpRequest);
 
-		String serverUrl = StringUtils.join("/", SERVER_NAME, "/*");
+		// 增加一个模版引擎
+		engine = PebbleTemplateEngine.create(vertx);
 
-		// 处理一个post方法的rest接口
-		router.post("/*").handler(this::handleHttpRequest);
-		// 处理一个get方法的rest接口
-		router.get("/*").handler(this::handleHttpRequest);
-
-		httpServer.requestHandler(router::accept);
+		httpServer.requestHandler(router);
 		httpServer.listen(8080, res -> {
 			if (res.succeeded()) {
 				System.out.println("Server is now listening!");
@@ -112,36 +115,17 @@ public class MainVerticle extends AbstractVerticle {
 	}
 
 	private void handleHttpRequest(RoutingContext context) {
+
 		HttpServerRequest req = context.request();
 		HttpServerResponse resp = context.response();
-
-		System.out.println("handleHttpRequest");
 
 		resp.putHeader("content-type", "application/json;charset=UTF-8");
 		resp.putHeader("Access-Control-Allow-Origin", "*");// 设置跨域，目前不限制。TODO，将来需要设定指定的来源
 
-		exec(context, req, resp);
-		resp.end();
-	}
-
-	private void putCtrlInMap(Map<String, Controller> map, Controller ctrl) {
-		map.put(ctrl.getNode(), ctrl);
-	}
-
-	private static void writeThings(HttpServerResponse resp, String content) {
-		resp.setStatusCode(200);
-		int len = content.getBytes(CodecUtils.CHARSET_UTF8).length;
-		resp.putHeader("Content-Length", Integer.toString(len));
-		resp.write(content, CodecUtils.ENCODING_UTF8);
-	}
-
-	private void exec(RoutingContext context, HttpServerRequest req, HttpServerResponse resp) {
-		String requestURI = req.path();
-
 		System.out.println(StringUtils.join(req.method(), " - ", req.path()));
 
-		String[] nodes = uri2Nodes(requestURI);
-
+		String reqPath = req.path();
+		String[] nodes = uri2Nodes(reqPath);
 		if (null != nodes && nodes.length > 0) {
 			// 可能因为nginx反向代理，在SERVER_NAME前加入多级子域名，需要过滤掉
 			// 去除nodes中，SERVER_NAME之前的部分
@@ -159,11 +143,17 @@ public class MainVerticle extends AbstractVerticle {
 
 				if (startInd + 1 >= nodes.length) {
 					// 只有SERVER_NAME节点，显示list
-					writeThings(resp, getCtrldocs());
+					Controller.writeThings(resp, getCtrldocs());
 				} else if (startInd + 2 >= nodes.length) {
 					// 只有controller节点，没有method节点，返回错误
-					resp.setStatusCode(404);
-					resp.setStatusMessage("missing controller method");
+					String node = nodes[startInd + 1];
+					Controller ctrl = ctrlMap.get(node);
+					if (ctrl == null) {
+						Controller.doResponseFailure(resp, BaseRC.SERVER_ERROR,
+								StringUtils.join("missing controller ", node));
+					} else {
+						Controller.writeThings(resp, ctrl.getJSCode());
+					}
 				} else {
 					String node = nodes[startInd + 1];
 					String method = nodes[startInd + 2];
@@ -172,20 +162,58 @@ public class MainVerticle extends AbstractVerticle {
 						try {
 							ctrl.exec(method, context, req, resp);
 						} catch (Exception e) {
-							writeThings(resp, e.getMessage());
+							Controller.writeThings(resp, e.getMessage());
 						}
 					} else {
 						// 返回404错误
-						resp.setStatusCode(404);
-						resp.setStatusMessage("missing controller");
+						// 没有找到合适的ctrl，则可能是模版或静态资源文件
+						if (node.equalsIgnoreCase(PATH_ASSET)) {
+							// goto template
+							// -tmp 模版引擎处理
+							int ind = reqPath.indexOf(PATH_ASSET) + PATH_ASSET.length();
+							String temp = reqPath.substring(ind);
+							JsonObject datax = new JsonObject().put("name", "Vert.x Web").put("path", "xxxxx");
+
+							String fileName = StringUtils.join("assets/", temp);
+
+							if (vertx.fileSystem().existsBlocking(fileName)) {
+								// 静态文件存在
+								resp.sendFile(fileName);
+								// 需要retrun，防止本函数写入终止符
+								return;
+							} else {
+								// 文件不存在,尝试模版
+								String pebFileName = StringUtils.join(fileName, ".peb");
+								if (vertx.fileSystem().existsBlocking(pebFileName)) {
+									// 模版文件存在
+									engine.render(datax, fileName, res -> {
+										if (res.succeeded()) {
+											// 异步过程结束
+											resp.end(res.result());
+										}
+									});
+									// 异步返回了文件结果，需要retrun，防止本函数写入终止符
+									return;
+								} else {
+									Controller.doResponseFailure(resp, BaseRC.SERVER_ERROR,
+											StringUtils.join("missing file ", fileName));
+								}
+							}
+
+							return;
+						} else {
+							Controller.doResponseFailure(resp, BaseRC.SERVER_ERROR,
+									StringUtils.join("missing controller ", node));
+						}
 					}
 				}
 			}
 		} else {
 			// 返回404错误
-			resp.setStatusCode(404);
-			resp.setStatusMessage("missing controller");
+			Controller.doResponseFailure(resp, BaseRC.SERVER_ERROR, StringUtils.join("missing controller ", reqPath));
 		}
+
+		resp.end();
 	}
 
 	/**
@@ -207,7 +235,6 @@ public class MainVerticle extends AbstractVerticle {
 				tmp = tmp.substring(0, tmp.length() - 1);
 			}
 		}
-
 		// 根据斜杠拆分
 		if (tmp.length() > 0) {
 			String[] nodes = StringUtils.split(tmp, URI_SLASH);
@@ -219,7 +246,11 @@ public class MainVerticle extends AbstractVerticle {
 
 	private String getCtrldocs() {
 
-		JSONArray ja = new JSONArray();
+		StringBuffer sb = new StringBuffer();
+		String ln = "\n";
+		String ln2 = "\n\n";
+
+		sb.append("\t\tSERVER <").append(SERVER_NAME).append(">").append(ln2);
 
 		Iterator<Entry<String, Controller>> it = ctrlMap.entrySet().iterator();
 		while (it.hasNext()) {
@@ -228,12 +259,16 @@ public class MainVerticle extends AbstractVerticle {
 			String key = entry.getKey();
 			Controller value = entry.getValue();
 
-			JSONObject ctrl = new JSONObject();
-			ctrl.put(key, value.getJSONDocs());
+			sb.append(">>>>> ").append(key).append(ln);
 
-			ja.add(ctrl);
+			value.getJSONDocs(sb);
+
+			sb.append(ln).append(
+					"\t------------------------------------------------------------------------------------------\t")
+					.append(ln2);
 		}
 
-		return JSON.toJSONString(ja, true);
+		return sb.toString();
 	}
+
 }

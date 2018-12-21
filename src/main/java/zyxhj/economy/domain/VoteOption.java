@@ -19,6 +19,12 @@ public class VoteOption {
 	public Long voteId;
 
 	/**
+	 * 是否弃权选项
+	 */
+	@RDSAnnField(column = RDSAnnField.BOOLEAN)
+	public Boolean isAbstain;
+
+	/**
 	 * 标题
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_TITLE)
@@ -31,38 +37,20 @@ public class VoteOption {
 	public String remark;
 
 	/**
-	 * 赞成计数器
+	 * 扩展（JSON）
 	 */
-	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer agreeCounter;
+	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
+	public String ext;
 
 	/**
-	 * 反对计数器
+	 * 选票计数器
 	 */
 	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer disagreeCounter;
+	public Integer ballotCount;
 
 	/**
-	 * 弃权计数器
+	 * 选票权重计数器
 	 */
 	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer abstainedCounter;
-	/**
-	 * 赞成权重
-	 */
-	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer agreeWeight;
-
-	/**
-	 * 反对权重
-	 */
-	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer disagreeWeight;
-
-	/**
-	 * 弃权权重
-	 */
-	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer abstainedWeight;
-
+	public Integer weight;
 }

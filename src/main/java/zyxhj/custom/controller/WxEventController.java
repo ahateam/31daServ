@@ -54,7 +54,7 @@ public class WxEventController extends Controller {
 				@Override
 				public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context,
 						WxMpService wxMpService, WxSessionManager sessionManager) {
-					System.err.println("场景值:  "+wxMessage.getEventKey().substring(8));
+					System.err.println("场景值:  " + wxMessage.getEventKey().substring(8));
 					WxMpXmlOutTextMessage m = WxMpXmlOutMessage.TEXT().content("欢迎关注！！！")
 							.fromUser(wxMessage.getToUser()).toUser(wxMessage.getFromUser()).build();
 					return m;
@@ -107,7 +107,7 @@ public class WxEventController extends Controller {
 			// 路由器配置
 			wxMpMessageRouter = new WxMpMessageRouter(wxDataService.getWxMpService());
 			wxMpMessageRouter
-					
+
 					.rule().async(false).msgType(WxConsts.XmlMsgType.EVENT).event(WxConsts.EventType.SUBSCRIBE)
 					.handler(handler).end()
 
@@ -125,7 +125,9 @@ public class WxEventController extends Controller {
 	}
 
 	// 微信监听入口
-	@GET(path = "monitorEvent")
+	@GET(path = "monitorEvent", //
+			des = "monitorEvent测试"//
+	)
 	public void monitorEvent(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) {
 		System.err.println("testIn");
 

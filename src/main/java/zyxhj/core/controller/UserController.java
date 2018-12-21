@@ -4,16 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
-import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.core.domain.LoginBo;
 import zyxhj.core.domain.User;
+import zyxhj.core.service.ServiceUtils;
 import zyxhj.core.service.UserService;
 import zyxhj.utils.IDUtils;
-import zyxhj.utils.api.APIRequest;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
-import zyxhj.utils.api.Param;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
 
@@ -45,43 +43,36 @@ public class UserController extends Controller {
 	}
 
 	/**
-	 * 通过用户编号获取用户信息
 	 * 
-	 * @param userId
-	 *            用户编号
-	 * @return 用户对象（部分信息应该抹掉，或者不查询出来，例如pwd，现在偷懒简单做的）
 	 */
-	@POSTAPI(path = "getUserById")
-	public APIResponse getUserById(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long userId = Param.getLong(c, "userId");
-
+	@POSTAPI(//
+			path = "getUserById", //
+			des = "通过编号获取用户对象", //
+			ret = "编号对应的用户对象"//
+	)
+	public APIResponse getUserById(//
+			@P(t = "用户编号") Long userId//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = userService.getUserById(conn, userId);
-			Param.checkNull(user);
+			ServiceUtils.checkNull(user);
 			user.pwd = null;// 置空密码
 			return APIResponse.getNewSuccessResp(user);
 		}
 	}
 
 	/**
-	 * 用户名密码注册
 	 * 
-	 * @param name
-	 *            用户名（必填）
-	 * @param pwd
-	 *            密码（必填）
-	 * 
-	 * @return LoginBO 业务对象，包含用户session等相关
 	 */
-	@POSTAPI(path = "registByNameAndPwd")
-	public APIResponse registByNameAndPwd(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		String name = Param.getString(c, "name");
-		String pwd = Param.getString(c, "pwd");
-
+	@POSTAPI(//
+			path = "registByNameAndPwd", //
+			des = "用户名密码注册", //
+			ret = "LoginBO对象，包含user，session等信息"//
+	)
+	public APIResponse registByNameAndPwd(//
+			@P(t = "用户名") String name, //
+			@P(t = "密码") String pwd//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection();) {
 			User user = userService.registByNameAndPwd(conn, name, pwd);
 			// 如果成功注册，则写入Session后，返回LoginBo
@@ -92,21 +83,16 @@ public class UserController extends Controller {
 	}
 
 	/**
-	 * 用户名密码登录
 	 * 
-	 * @param name
-	 *            用户名
-	 * @param pwd
-	 *            密码（目前明文传递，将来需要加密传递 ）
-	 * @return LoginBO 业务对象，包含用户session等相关
 	 */
-	@POSTAPI(path = "loginByNameAndPwd")
-	public APIResponse loginByNameAndPwd(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		String name = Param.getString(c, "name");
-		String pwd = Param.getString(c, "pwd");
-
+	@POSTAPI(path = "loginByNameAndPwd", //
+			des = "用户名密码登录", //
+			ret = "LoginBO对象，包含user，session等信息"//
+	)
+	public APIResponse loginByNameAndPwd(//
+			@P(t = "用户名") String name, //
+			@P(t = "密码") String pwd//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			// 如果成功登录，则写入Session后，返回LoginBo
 			LoginBo loginBo = userService.loginByNameAndPwd(conn, name, pwd);
@@ -116,13 +102,14 @@ public class UserController extends Controller {
 	}
 
 	/**
-	 * 匿名登录
 	 * 
-	 * @return LoginBO 业务对象，包含用户session等相关
 	 */
-	@POSTAPI(path = "loginByAnonymous")
-	public APIResponse loginByAnonymous(APIRequest req) throws Exception {
-		// JSONObject c = Param.getReqContent(req);
+	@POSTAPI(//
+			path = "loginByAnonymous", //
+			des = "匿名登录", //
+			ret = "LoginBO对象，包含user，session等信息"//
+	)
+	public APIResponse loginByAnonymous() throws Exception {
 
 		// 构造匿名user
 		User anonymous = new User();

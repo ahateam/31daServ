@@ -237,7 +237,6 @@ public class UserService {
 	public void createUserRole(DruidPooledConnection conn, Long id, String name, String remark) throws Exception {
 		UserRole userRole = new UserRole();
 		userRole.id = id;
-		userRole.createDate = new Date();
 		userRole.name = name;
 		userRole.remark = remark;
 

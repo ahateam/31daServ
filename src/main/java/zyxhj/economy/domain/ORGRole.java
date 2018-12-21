@@ -1,5 +1,6 @@
 package zyxhj.economy.domain;
 
+import zyxhj.utils.api.Controller.ENUMVALUE;
 import zyxhj.utils.data.rds.RDSAnnEntity;
 import zyxhj.utils.data.rds.RDSAnnField;
 import zyxhj.utils.data.rds.RDSAnnID;
@@ -11,19 +12,82 @@ import zyxhj.utils.data.rds.RDSAnnID;
 @RDSAnnEntity(alias = "tb_ecm_org_role")
 public class ORGRole {
 
-	public static final Byte SHARE_NONE = 20;// 非股东
-	public static final Byte SHARE_SHAREHOLDER = 21;// 股东
-	public static final Byte SHARE_REPRESENTATIVE = 22;// 股东代表
+	public static enum SHARE implements ENUMVALUE {
+		NONE((byte) 20, "非股东"), //
+		SHAREHOLDER((byte) 21, "股东"), //
+		REPRESENTATIVE((byte) 22, "股东代表"), //
+		;
 
-	public static final Byte DUTY_NONE = 10;// 非董事
-	public static final Byte DUTY_DIRECTOR = 11;// 董事
-	public static final Byte DUTY_CHAIRMAN = 12;// 董事长（主席）
-	public static final Byte DUTY_VICE_CHAIRMAN = 13;// 副董事长
+		private byte v;
+		private String txt;
 
-	public static final Byte VISOR_NONE = 10;// 非监事
-	public static final Byte VISOR_SUPERVISOR = 11;// 监事
-	public static final Byte VISOR_CHAIRMAN = 12;// 监事长（主席）
-	public static final Byte VISOR_VICE_SUPERVISOR = 13;// 副监事长
+		private SHARE(byte v, String txt) {
+			this.v = v;
+			this.txt = txt;
+		}
+
+		@Override
+		public byte v() {
+			return v;
+		}
+
+		@Override
+		public String txt() {
+			return txt;
+		}
+	}
+
+	public static enum DUTY implements ENUMVALUE {
+		NONE((byte) 10, "非董事"), //
+		DIRECTOR((byte) 11, "董事"), //
+		CHAIRMAN((byte) 12, "董事长"), //
+		VICE_CHAIRMAN((byte) 13, "副董事长"), //
+		;
+
+		private byte v;
+		private String txt;
+
+		private DUTY(byte v, String txt) {
+			this.v = v;
+			this.txt = txt;
+		}
+
+		@Override
+		public byte v() {
+			return v;
+		}
+
+		@Override
+		public String txt() {
+			return txt;
+		}
+	}
+
+	public static enum VISOR implements ENUMVALUE {
+		NONE((byte) 10, "非监事"), //
+		SUPERVISOR((byte) 11, "监事"), //
+		CHAIRMAN((byte) 12, "监事长"), //
+		VICE_CHAIRMAN((byte) 13, "副监事长"), //
+		;
+
+		private byte v;
+		private String txt;
+
+		private VISOR(byte v, String txt) {
+			this.v = v;
+			this.txt = txt;
+		}
+
+		@Override
+		public byte v() {
+			return v;
+		}
+
+		@Override
+		public String txt() {
+			return txt;
+		}
+	}
 
 	/**
 	 * 组织编号
@@ -38,6 +102,18 @@ public class ORGRole {
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long userId;
+
+	/**
+	 * 用户真名（数据冗余）
+	 */
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
+	public String realName;
+
+	/**
+	 * 身份证号（数据冗余）
+	 */
+	@RDSAnnField(column = "VARCHAR(32)")
+	public String idNumber;
 
 	/**
 	 * 股份类型（NONE，董事，副董事长，董事长）

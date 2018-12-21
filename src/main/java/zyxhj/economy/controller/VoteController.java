@@ -1,22 +1,17 @@
 package zyxhj.economy.controller;
 
 import java.util.Date;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.economy.domain.Vote;
 import zyxhj.economy.service.VoteService;
-import zyxhj.utils.api.APIRequest;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
-import zyxhj.utils.api.Param;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
 
@@ -47,259 +42,372 @@ public class VoteController extends Controller {
 		}
 	}
 
+	@ENUM
+	public Vote.TYPE[] voteTypes = Vote.TYPE.values();
+
+	@ENUM
+	public Vote.CROWD[] voteCrowds = Vote.CROWD.values();
+
+	@ENUM
+	public Vote.TEMPLATE[] voteTemplates = Vote.TEMPLATE.values();
+
+	@ENUM
+	public Vote.STATUS[] voteStatus = Vote.STATUS.values();
+
 	/**
-	 * 创建投票
-	 * 
-	 * @param orgId
-	 *            组织编号
-	 * @param title
-	 *            标题
-	 * @param remark
-	 *            备注
-	 * @param type
-	 *            投票类型，单选多选
-	 * @param choiceCount
-	 *            多选数量限制
-	 * @param startTime
-	 *            开始日期
-	 * @param expiryTime
-	 *            截止日期
-	 * @return 创建的投票对象
 	 * 
 	 */
-	@POSTAPI(path = "createVote")
-	public APIResponse createVote(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long orgId = Param.getLong(c, "orgId");
-		String title = Param.getString(c, "title");
-		String remark = Param.getString(c, "remark");
-
-		Byte type = Param.getByte(c, "type");
-		Byte choiceCount = Param.getByte(c, "choiceCount");
-		Date startTime = new Date(Param.getLong(c, "startTime"));
-		Date expiryTime = new Date(Param.getLong(c, "expiryTime"));
-
+	@POSTAPI(//
+			path = "createVoteProject", //
+			des = "创建投票项目", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse createVoteProject(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "用户编号") Long userId, //
+			@P(t = "标题") String title, //
+			@P(t = "备注") String remark, //
+			@P(t = "起始时间") Date startTime, //
+			@P(t = "终止时间") Date expiryTime//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(
-					voteService.createVote(conn, orgId, title, remark, type, choiceCount, startTime, expiryTime));
+					voteService.createVoteProject(conn, orgId, userId, title, remark, startTime, expiryTime));
 		}
 	}
 
 	/**
-	 * 获取组织的投票列表
-	 * 
-	 * @param orgId
-	 *            组织编号
-	 * @param count
-	 *            数量（用于分页）
-	 * @param offset
-	 *            起始位置（从零开始，用于分页）
-	 * 
-	 * @return 投票列表（）
 	 * 
 	 */
-	@POSTAPI(path = "getVotes")
-	public APIResponse getVotes(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long orgId = Param.getLong(c, "orgId");
-
-		Integer count = Param.getInteger(c, "count");
-		Integer offset = Param.getInteger(c, "offset");
-
+	@POSTAPI(//
+			path = "editVoteProject", //
+			des = "编辑投票项目", //
+			ret = "更新影响的记录数"//
+	)
+	public APIResponse editVoteProject(//
+			@P(t = "投票项目编号") Long projectId, //
+			@P(t = "标题") String title, //
+			@P(t = "备注") String remark, //
+			@P(t = "起始时间") Date startTime, //
+			@P(t = "终止时间") Date expiryTime//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			List<Vote> vs = voteService.getVotes(conn, orgId, count, offset);
-			JSONArray waiting = new JSONArray();
-			JSONArray started = new JSONArray();
-			JSONArray fininshed = new JSONArray();
+			return APIResponse.getNewSuccessResp(
+					voteService.editVoteProject(conn, projectId, title, remark, startTime, expiryTime));
+		}
+	}
 
-			Date now = new Date();
-			for (Vote v : vs) {
-				if (now.compareTo(v.startTime) > 0) {
-					// 已经开始
-					if (now.compareTo(v.expiryTime) > 0) {
-						// 已经结束
-						fininshed.add(v);
-//						System.out.println("fininshed->" + JSON.toJSONString(v));
-					} else {
-						started.add(v);
-					}
-				} else {
-					waiting.add(v);
-				}
-			}
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "delVoteProject", //
+			des = "删除投票项目", //
+			ret = "更新影响的记录数"//
+	)
+	public APIResponse delVoteProject(//
+			@P(t = "投票项目编号") Long projectId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.delVoteProject(conn, projectId));
+		}
+	}
 
-			JSONObject ret = new JSONObject();
-			ret.put("waiting", waiting);
-			ret.put("started", started);
-			ret.put("fininshed", fininshed);
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getVoteProjectsByOrgId", //
+			des = "获取组织的投票项目", //
+			ret = "所查询的对象列表"//
+	)
+	public APIResponse getVoteProjectsByOrgId(//
+			@P(t = "投票项目编号") Long orgId, //
+			@P(t = "项目是否可用") Boolean isActive, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(voteService.getVoteProjectsByOrgId(conn, orgId, isActive, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "addVote", //
+			des = "创建投票", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse addVote(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "项目编号") Long projectId, //
+			@P(t = "投票模版，Vote.TEMPLATE") Byte template, //
+			@P(t = "投票类型，Vote.TYPE") Byte type, //
+			@P(t = "最多选择的数量") Byte choiceCount, //
+			@P(t = "参加投票项目的人群（JSONArray）,Vote.CROWD") JSONArray crowd, //
+			@P(t = "用户在有效期内是否可以重新编辑选票") Boolean reeditable, //
+			@P(t = "是否实名制") Boolean realName, //
+			@P(t = "是否内部投票（外部可允许任何人参与，用于意见采集）") Boolean isInternal, //
+			@P(t = "是否带有弃权选项") Boolean isAbstain, //
+			@P(t = "生效人数比例（百分率，50代表50%）") Byte effectiveRatio, //
+			@P(t = "失效人数比例（期权人数过多就失效，百分率，50代表50%）") Byte failureRatio, //
+			@P(t = "标题") String title, //
+			@P(t = "备注") String remark, //
+			@P(t = "扩展（JSON）") String ext //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(
+					voteService.addVote(conn, orgId, projectId, template, type, choiceCount, crowd, reeditable,
+							realName, isInternal, isAbstain, effectiveRatio, failureRatio, title, remark, ext));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "editVote", //
+			des = "编辑投票", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse editVote(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "投票项目编号") Long projectId, //
+			@P(t = "投票编号") Long voteId, //
+			@P(t = "投票模版，Vote.TEMPLATE") Byte template, //
+			@P(t = "投票类型，Vote.TYPE") Byte type, //
+			@P(t = "最多选择的数量") Byte choiceCount, //
+			@P(t = "参加投票项目的人群（JSONArray）,Vote.CROWD") JSONArray crowd, //
+			@P(t = "用户在有效期内是否可以重新编辑选票") Boolean reeditable, //
+			@P(t = "是否实名制") Boolean realName, //
+			@P(t = "是否内部投票（外部可允许任何人参与，用于意见采集）") Boolean isInternal, //
+			@P(t = "是否带有弃权选项") Boolean isAbstain, //
+			@P(t = "生效人数比例（百分率，50代表50%）") Byte effectiveRatio, //
+			@P(t = "失效人数比例（期权人数过多就失效，百分率，50代表50%）") Byte failureRatio, //
+			@P(t = "标题") String title, //
+			@P(t = "备注") String remark, //
+			@P(t = "扩展（JSON）") String ext //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(
+					voteService.editVote(conn, orgId, projectId, voteId, template, type, choiceCount, crowd, reeditable,
+							realName, isInternal, isAbstain, effectiveRatio, failureRatio, title, remark, ext));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "setVoteActivation", //
+			des = "启用/禁用投票", //
+			ret = "更新影响的记录数"//
+	)
+	public APIResponse setVoteActivation(//
+			@P(t = "投票项目编号") Long projectId, //
+			@P(t = "投票编号") Long voteId, //
+			@P(t = "启用/禁用") Boolean activation //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.setVoteActivation(conn, projectId, voteId, activation));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "setVotePaused", //
+			des = "人为作废/恢复投票", //
+			ret = "更新影响的记录数"//
+	)
+	public APIResponse setVotePaused(//
+			@P(t = "投票项目编号") Long projectId, //
+			@P(t = "投票编号") Long voteId, //
+			@P(t = "人为废除/恢复") Boolean paused //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.setVotePaused(conn, projectId, voteId, paused));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "setVoteOptionIds", //
+			des = "设置投票选项编号列表（包含顺序）", //
+			ret = "更新影响的记录数"//
+	)
+	public APIResponse setVoteOptionIds(//
+			@P(t = "投票项目编号") Long projectId, //
+			@P(t = "投票编号") Long voteId, //
+			@P(t = "投票选项编号列表（JSONArray）") JSONArray optionIds //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.setVoteOptionIds(conn, projectId, voteId, optionIds));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "delVote", //
+			des = "删除投票项目", //
+			ret = "更新影响的记录数"//
+	)
+	public APIResponse delVote(//
+			@P(t = "投票项目编号") Long projectId, //
+			@P(t = "投票编号") Long voteId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.delVote(conn, projectId, voteId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getVotes", //
+			des = "获取投票项目中的投票", //
+			ret = "所查询的对象列表"//
+	)
+	public APIResponse getVotes(//
+			@P(t = "投票项目编号") Long projectId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.getVotes(conn, projectId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "addVoteOption", //
+			des = "添加投票选项", //
+			ret = "添加的选项"//
+	)
+	public APIResponse addVoteOption(//
+			@P(t = "投票项目编号") Long projectId, //
+			@P(t = "投票编号") Long voteId, //
+			@P(t = "标题") String title, //
+			@P(t = "备注") String remark, //
+			@P(t = "扩展（JSON）") String ext//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(voteService.addVoteOption(conn, projectId, voteId, false, title, remark, ext));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "editVoteOption", //
+			des = "修改投票选项", //
+			ret = "影响记录的行数"//
+	)
+	public APIResponse editVoteOption(//
+			@P(t = "投票项目编号") Long projectId, //
+			@P(t = "投票选项编号") Long optionId, //
+			@P(t = "标题") String title, //
+			@P(t = "备注") String remark, //
+			@P(t = "扩展（JSON）") String ext//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			int ret = voteService.editVoteOption(conn, projectId, optionId, title, remark, ext);
 			return APIResponse.getNewSuccessResp(ret);
 		}
 	}
 
 	/**
-	 * 添加投票的选项
-	 * 
-	 * @param voteId
-	 *            投票编号
-	 * @param title
-	 *            标题
-	 * @param remark
-	 *            备注（非必填）
-	 * @return 添加的选项
 	 * 
 	 */
-	@POSTAPI(path = "addVoteOption")
-	public APIResponse addVoteOption(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long voteId = Param.getLong(c, "voteId");
-		String title = Param.getString(c, "title");
-		String remark = Param.getStringDFLT(c, "remark", null);
-
+	@POSTAPI(//
+			path = "delVoteOption", //
+			des = "删除投票选项", //
+			ret = "影响记录的行数")
+	public APIResponse delVoteOption(//
+			@P(t = "投票项目编号") Long projectId, //
+			@P(t = "投票编号") Long voteId, //
+			@P(t = "投票选项编号") Long optionId//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(voteService.addVoteOption(conn, voteId, title, remark));
+			return APIResponse.getNewSuccessResp(voteService.delVoteOption(conn, projectId, voteId, optionId));
 		}
 	}
 
 	/**
-	 * 获取组织的投票的选项列表
-	 * 
-	 * @param voteId
-	 *            投票编号
-	 * 
-	 * @return 投票选项列表
 	 * 
 	 */
-	@POSTAPI(path = "getVoteOptions")
-	public APIResponse getVoteOptions(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long voteId = Param.getLong(c, "voteId");
-
+	@POSTAPI(//
+			path = "getVoteOptions", //
+			des = "获取投票的选项列表", //
+			ret = "选项对象列表"//
+	)
+	public APIResponse getVoteOptions(//
+			@P(t = "投票编号") Long voteId//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getVoteOptions(conn, voteId));
 		}
 	}
 
 	/**
-	 * 设置投票的选项
-	 * 
-	 * @param optionId
-	 *            投票选项编号
-	 * @param title
-	 *            标题
-	 * @param remark
-	 *            备注
-	 * @return 添加的选项
 	 * 
 	 */
-	@POSTAPI(path = "setVoteOption")
-	public APIResponse setVoteOption(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long optionId = Param.getLong(c, "optionId");
-		String title = Param.getString(c, "title");
-		String remark = Param.getString(c, "remark");
-
+	@POSTAPI(//
+			path = "vote", //
+			des = "投票"//
+	)
+	public APIResponse vote(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "投票项目编号") Long projectId, //
+			@P(t = "投票编号") Long voteId, //
+			@P(t = "用户编号") Long userId, //
+			@P(t = "选项JSON数组（potionId列表）\n" + //
+					"[\"134441\",\"234234\"]\n") JSONArray selections, //
+			@P(t = "用户的选票数") Integer ballotCount, //
+			@P(t = "备注") String remark//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			voteService.setVoteOption(conn, optionId, title, remark);
+			voteService.vote(conn, orgId, projectId, voteId, userId, selections, ballotCount, remark);
 			return APIResponse.getNewSuccessResp();
 		}
 	}
 
-	/**
-	 * 删除投票的选项 TODO 将来投票启动之后，不允许随便删除
-	 * 
-	 * @param optionId
-	 *            投票选项编号
-	 * 
-	 */
-	@POSTAPI(path = "delVoteOption")
-	public APIResponse delVoteOption(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long optionId = Param.getLong(c, "optionId");
-
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			voteService.delVoteOption(conn, optionId);
-			return APIResponse.getNewSuccessResp();
-		}
-	}
-
-	/**
-	 * 投票
-	 * 
-	 * @param voteId
-	 *            投票编号
-	 * @param userId
-	 *            用户编号
-	 * @param selections
-	 *            选项JSON数组</br>
-	 *            [{"option":"134441","opt","2"},{"option":"234234","opt","1"}]</br>
-	 *            option是指VoteOption编号，opt是指具体选项：</br>
-	 *            OPT_ABSTAINED = 0;</br>
-	 *            OPT_AGREE = 1;</br>
-	 *            OPT_DISAGREE = 2;</br>
-	 * @param weight
-	 *            用户的投票权重
-	 * @param remark
-	 *            备注
-	 * 
-	 */
-	@POSTAPI(path = "vote")
-	public APIResponse vote(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long voteId = Param.getLong(c, "voteId");
-		Long userId = Param.getLong(c, "userId");
-
-		JSONArray selections = JSON.parseArray(Param.getString(c, "selections"));
-
-		Integer weight = Param.getInteger(c, "weight");
-		String remark = Param.getString(c, "remark");
-
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			voteService.vote(conn, voteId, userId, selections, weight, remark);
-			return APIResponse.getNewSuccessResp();
-		}
-	}
-
-	/**
-	 * 删除投票的选项 TODO 将来投票启动之后，不允许随便删除
-	 * 
-	 * @param voteId
-	 *            投票编号
-	 * 
-	 */
-	@POSTAPI(path = "getVoteDetail")
-	public APIResponse getVoteDetail(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long voteId = Param.getLong(c, "voteId");
-
+	@POSTAPI(//
+			path = "getVoteDetail", //
+			des = "获取投票详细", //
+			ret = "投票详细，vote及opt信息"//
+	)
+	public APIResponse getVoteDetail(//
+			@P(t = "投票编号") Long voteId//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getVoteDetail(conn, voteId));
 		}
 	}
 
 	/**
-	 * 获取用户的选票
-	 * 
-	 * @param voteId
-	 *            投票编号
-	 * @param userId
-	 *            用户编号
 	 * 
 	 */
-	@POSTAPI(path = "getVoteTicket")
-	public APIResponse getVoteTicket(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long voteId = Param.getLong(c, "voteId");
-		Long userId = Param.getLong(c, "userId");
-
+	@POSTAPI(//
+			path = "getVoteTicket", //
+			des = "获取用户的选票", //
+			ret = "用户选票对象"//
+	)
+	public APIResponse getVoteTicket(//
+			@P(t = "投票编号") Long voteId, //
+			@P(t = "用户编号") Long userId//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getVoteTicket(conn, voteId, userId));
 		}

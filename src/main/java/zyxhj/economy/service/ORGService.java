@@ -15,6 +15,7 @@ import zyxhj.core.domain.LoginBo;
 import zyxhj.core.domain.User;
 import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.core.service.ServiceUtils;
 import zyxhj.economy.domain.ORG;
 import zyxhj.economy.domain.ORGRole;
 import zyxhj.economy.domain.ORGUserBo;
@@ -23,7 +24,6 @@ import zyxhj.economy.repository.ORGRoleRepository;
 import zyxhj.utils.CacheCenter;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.api.BaseRC;
-import zyxhj.utils.api.Param;
 import zyxhj.utils.api.ServerException;
 
 public class ORGService {
@@ -101,13 +101,11 @@ public class ORGService {
 		UserSession userSession = putUserSession(user.id, loginTime, IDUtils.getHexSimpleId());
 
 		ORGUserBo ret = new ORGUserBo();
+
 		ret.id = user.id;
 		ret.name = user.name;
-		ret.realName = user.realName;
 		ret.nickname = user.nickname;
 		ret.signature = user.signature;
-
-		ret.idNumber = user.idNumber;
 		ret.mobile = user.mobile;
 
 		ret.roles = user.roles;
@@ -116,6 +114,8 @@ public class ORGService {
 		ret.loginToken = userSession.loginToken;
 
 		ret.orgId = role.orgId;
+		ret.realName = role.realName;
+		ret.idNumber = role.idNumber;
 		ret.share = role.share;
 		ret.shareAmount = role.shareAmount;
 		ret.weight = role.weight;
@@ -235,6 +235,8 @@ public class ORGService {
 			or.orgId = orgId;
 			or.userId = newUser.id;
 
+			or.realName = realName;
+			or.idNumber = idNumber;
 			or.share = share;
 			or.shareAmount = shareAmount;
 			or.weight = weight;
@@ -260,14 +262,14 @@ public class ORGService {
 	/**
 	 * 修改用户信息，身份证信息不能修改
 	 */
-	public void updateUser(DruidPooledConnection conn, Long userId, String mobile, String realName, String pwd)
+	public int updateUser(DruidPooledConnection conn, Long userId, String mobile, String realName, String pwd)
 			throws Exception {
 		User renew = new User();
 		renew.mobile = mobile;
 		renew.realName = realName;
 		renew.pwd = pwd;
 
-		userRepository.updateByKey(conn, "id", userId, renew, true);
+		return userRepository.updateByKey(conn, "id", userId, renew, true);
 	}
 
 	/**
@@ -282,16 +284,16 @@ public class ORGService {
 	 * 修改组织的用户</br>
 	 * 只修改ORGRole表，不变动user本身。
 	 */
-	public void updateORGUser(DruidPooledConnection conn, Long orgId, Long userId, Byte share, Integer weight,
-			Byte duty, Byte visor) throws Exception {
+	public int updateORGUser(DruidPooledConnection conn, Long orgId, Long userId, Byte share, Integer weight, Byte duty,
+			Byte visor) throws Exception {
 		ORGRole renew = new ORGRole();
 		renew.share = share;
 		renew.weight = weight;
 		renew.duty = duty;
 		renew.visor = visor;
 
-		orgRoleRepository.updateByKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId },
-				renew, true);
+		return orgRoleRepository.updateByKeys(conn, new String[] { "org_id", "user_id" },
+				new Object[] { orgId, userId }, renew, true);
 	}
 
 	/**
@@ -328,8 +330,8 @@ public class ORGService {
 		ORGRole role = orgRoleRepository.getByKeys(conn, new String[] { "org_id", "user_id" },
 				new Object[] { orgId, userId });
 		User user = userRepository.getByKey(conn, "id", userId);
-		Param.checkNull(role);
-		Param.checkNull(user);
+		ServiceUtils.checkNull(role);
+		ServiceUtils.checkNull(user);
 
 		return login2(conn, user, role);
 	}
@@ -386,5 +388,13 @@ public class ORGService {
 	public JSONArray getORGSupervisors(DruidPooledConnection conn, Long orgId, int count, int offset) throws Exception {
 		List<ORGRole> ors = orgRoleRepository.getSuperVisors(conn, orgId, count, offset);
 		return getORGUserByRole(conn, ors);
+	}
+
+	/**
+	 * 根据组织编号和身份证号片段（生日），模糊查询
+	 */
+	public List<ORGRole> getORGRolesLikeIDNumber(DruidPooledConnection conn, Long orgId, String idNumber, Integer count,
+			Integer offset) throws Exception {
+		return orgRoleRepository.getORGRolesLikeIDNumber(conn, orgId, idNumber, count, offset);
 	}
 }

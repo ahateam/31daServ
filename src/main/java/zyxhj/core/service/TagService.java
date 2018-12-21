@@ -74,10 +74,17 @@ public class TagService {
 	}
 
 	/**
-	 * 获取标签分组列表
+	 * 获取系统标签分组列表
 	 */
-	public List<TagGroup> getTagGroups(DruidPooledConnection conn, Byte type) throws Exception {
-		return groupRepository.getListByKey(conn, "type", type, 512, 0);
+	public List<TagGroup> getSysTagGroups(DruidPooledConnection conn) throws Exception {
+		return groupRepository.getListByKey(conn, "type", TagGroup.TYPE_SYS, 512, 0);
+	}
+
+	/**
+	 * 获取自定义标签分组列表
+	 */
+	public List<TagGroup> getCumtomTagGroups(DruidPooledConnection conn) throws Exception {
+		return groupRepository.getListByKey(conn, "type", TagGroup.TYPE_CUSTOM, 512, 0);
 	}
 
 	/**
@@ -87,7 +94,7 @@ public class TagService {
 		Tag ct = new Tag();
 
 		ct.id = IDUtils.getSimpleId();
-		ct.status = Tag.STATUS_ENABLED;
+		ct.status = Tag.STATUS.ENABLED.v();
 		ct.groupKeyword = groupKeyword;
 		ct.name = name;
 
@@ -119,9 +126,9 @@ public class TagService {
 	/**
 	 * 启用标签
 	 */
-	public int updateTag(DruidPooledConnection conn, Long tagId) throws Exception {
+	public int enableTag(DruidPooledConnection conn, Long tagId) throws Exception {
 		Tag renew = new Tag();
-		renew.status = Tag.STATUS_ENABLED;
+		renew.status = Tag.STATUS.ENABLED.v();
 
 		return tagRepository.updateByKey(conn, "id", tagId, renew, true);
 	}
@@ -131,7 +138,7 @@ public class TagService {
 	 */
 	public int disableTag(DruidPooledConnection conn, Long tagId) throws Exception {
 		Tag renew = new Tag();
-		renew.status = Tag.STATUS_DISABLED;
+		renew.status = Tag.STATUS.DISABLED.v();
 
 		return tagRepository.updateByKey(conn, "id", tagId, renew, true);
 	}

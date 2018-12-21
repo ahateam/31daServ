@@ -68,7 +68,7 @@ public class ContentService {
 		c.id = IDUtils.getSimpleId();
 
 		c.type = type;
-		c.status = Content.STATUS_DRAFT;// 首次创建时是草稿状态
+		c.status = Content.STATUS.DRAFT.v();// 首次创建时是草稿状态
 		c.level = level;
 
 		c.createTime = new Date();

@@ -7,16 +7,13 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.cms.domain.Content;
 import zyxhj.cms.service.ContentService;
 import zyxhj.core.domain.User;
-import zyxhj.utils.ServiceUtils;
-import zyxhj.utils.api.APIRequest;
+import zyxhj.core.service.ServiceUtils;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
-import zyxhj.utils.api.Param;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
 
@@ -47,82 +44,49 @@ public class ContentController extends Controller {
 		}
 	}
 
+	@ENUM
+	public Content.TYPE[] contentTypes = Content.TYPE.values();
+
+	@ENUM
+	public Content.STATUS[] contentStatus = Content.STATUS.values();
+
 	/**
-	 * 创建内容
 	 * 
-	 * @param userId
-	 *            用户编号
-	 * @param type
-	 *            类型</br>
-	 *            TYPE_ALBUM = 0;// 相册</br>
-	 *            TYPE_AUDIO = 1;// 音频</br>
-	 *            TYPE_VIDEO_CLIP = 2;// 短视频</br>
-	 *            TYPE_VIDEO = 3;// 视频</br>
-	 *            TYPE_LIVE = 4;// 直播</br>
-	 *            TYPE_H5 = 5;// H5文本</br>
-	 *            TYPE_POST = 6;// 帖子</br>
-	 *            TYPE_SET = 7;// 内容集合</br>
-	 * @param level
-	 *            （选填，默认LEVEL_PUBLIC）</br>
-	 *            分级（用于权限控制）</br>
-	 *            （未实现）
-	 * @param upChannelId
-	 *            上传所属专栏编号
-	 * @param title
-	 *            标题
-	 * @param data
-	 *            数据</br>
-	 *            JSON形式存储内容信息结构体，具体结构体视项目而定
 	 */
-	@POSTAPI(path = "createContent")
-	public APIResponse createContent(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-		Long userId = Param.getLong(c, "userId");// 默认用户是0
-
-		// id
-		Byte type = Param.getByte(c, "type");
-		// status
-		Byte level = Param.getByteDFLT(c, "level", Content.LEVEL_PUBLIC);
-		// createTime
-		// updateTime
+	@POSTAPI(path = "createContent", //
+			des = "创建内容", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse createContent(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "内容类型Content.TYPE") Byte type, //
+			@P(t = "上传专栏编号", r = false) Long upChannelId, //
+			@P(t = "标题") String title, //
+			@P(t = "数据（JSON）") String data//
+	) throws Exception {
 		Long upUserId = userId;
-		Long upChannelId = Param.getLongDFLT(c, "upChannelId", 0L);
-		String title = Param.getString(c, "title");
-		String data = Param.getString(c, "data");
-
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
-			Content cnt = contentService.createContent(conn, type, level, upUserId, upChannelId, title, data);
-
-			return APIResponse.getNewSuccessResp(cnt.id);
+			Content cnt = contentService.createContent(conn, type, Content.LEVEL_PUBLIC, upUserId, upChannelId, title,
+					data);
+			return APIResponse.getNewSuccessResp(cnt);
 		}
 	}
 
 	/**
-	 * 为Content添加标签
 	 * 
-	 * @param userId
-	 *            用户编号，用于鉴权
-	 * @param contentId
-	 *            内容编号
-	 * @param tagKind
-	 *            标签大类
-	 * @param tagType
-	 *            标签小类
-	 * @param tags
-	 *            标签列表（JSON数组格式）
 	 */
-	@POSTAPI(path = "addContentTags")
-	public APIResponse addContentTags(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-		Long userId = Param.getLong(c, "userId");
-
-		Long contentId = Param.getLong(c, "contentId");
-		String tagKind = Param.getString(c, "tagKind");
-		String tagType = Param.getString(c, "tagType");
-		JSONArray tags = Param.getArray(c, "tags");
-
+	@POSTAPI(path = "addContentTags", //
+			des = "为内容添加标签" //
+	)
+	public APIResponse addContentTags(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "内容编号") Long contentId, //
+			@P(t = "标签大类") String tagKind, //
+			@P(t = "标签小类") String tagType, //
+			@P(t = "标签列表（JSON数组）") JSONArray tags//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
@@ -135,32 +99,18 @@ public class ContentController extends Controller {
 	}
 
 	/**
-	 * 为Content移除标签
-	 * 
-	 * @param appId
-	 *            应用编号
-	 * @param userId
-	 *            用户编号，用于鉴权
-	 * @param contentId
-	 *            内容编号
-	 * @param tagKind
-	 *            标签大类
-	 * @param tagType
-	 *            标签小类
-	 * @param tags
-	 *            标签列表（JSON数组格式）
 	 * 
 	 */
-	@POSTAPI(path = "removeContentTags")
-	public APIResponse removeContentTags(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-		Long userId = Param.getLong(c, "userId");
-
-		Long contentId = Param.getLong(c, "contentId");
-		String tagKind = Param.getString(c, "tagKind");
-		String tagType = Param.getString(c, "tagType");
-		JSONArray tags = Param.getArray(c, "tags");
-
+	@POSTAPI(path = "removeContentTags", //
+			des = "为内容移除标签" //
+	)
+	public APIResponse removeContentTags(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "内容编号") Long contentId, //
+			@P(t = "标签大类") String tagKind, //
+			@P(t = "标签小类") String tagType, //
+			@P(t = "标签列表（JSON数组）") JSONArray tags//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
@@ -174,61 +124,29 @@ public class ContentController extends Controller {
 
 	/**
 	 * 
-	 * @param userId
-	 *            用户编号，用于鉴权
-	 * @param contentType
-	 *            （选填，默认不参与查询）</br>
-	 *            内容类型（可空）
-	 * @param status
-	 *            （选填，默认不参与查询）</br>
-	 *            内容状态
-	 * @param level
-	 *            （选填，默认不参与查询）</br>
-	 *            内容等级
-	 * @param upUserId
-	 *            （选填，默认不参与查询）</br>
-	 *            上传者的用户编号
-	 * @param upChannelId
-	 *            （选填，默认不参与查询）</br>
-	 *            上传专栏的专栏编号
-	 * @param tagKind
-	 *            标签大类
-	 * @param tagType
-	 *            标签小类
-	 * @param tags
-	 *            标签列表（JSON数组格式）
-	 * @param count
-	 *            （选填，默认10）</br>
-	 *            分页读取的记录数量
-	 * @param offset
-	 *            （选填，默认0）</br>
-	 *            分页读取的起点位置
-	 * 
-	 * @return 内容对象数组
 	 */
-	@POSTAPI(path = "queryContents")
-	public APIResponse queryContents(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-		Long userId = Param.getLong(c, "userId");
-
-		Byte contentType = Param.getByteDFLT(c, "contentType", null);
-		Byte status = Param.getByteDFLT(c, "status", null);
-		Byte level = Param.getByteDFLT(c, "level", null);
-		Long upUserId = Param.getLongDFLT(c, "upUserId", null);
-		Long upChannelId = Param.getLongDFLT(c, "upChannelId", null);
-
-		String tagKind = Param.getString(c, "tagKind");
-		String tagType = Param.getString(c, "tagType");
-		JSONArray tags = Param.getArray(c, "tags");
-
-		Integer count = Param.getIntegerDFLT(c, "count", 10);
-		Integer offset = Param.getIntegerDFLT(c, "offset", 0);
-
+	@POSTAPI(path = "queryContents", //
+			des = "查询标签", //
+			ret = "内容对象数组"//
+	)
+	public APIResponse queryContents(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "内容类型Content.TYPE", r = false) Byte contentType, //
+			@P(t = "内容状态Content.STATUS", r = false) Byte status, //
+			@P(t = "上传用户编号", r = false) Long upUserId, //
+			@P(t = "上传专栏编号", r = false) Long upChannelId, //
+			@P(t = "标题", r = false) String title, //
+			@P(t = "标签大类", r = false) String tagKind, //
+			@P(t = "标签小类", r = false) String tagType, //
+			@P(t = "标签列表（JSONArray）", r = false) JSONArray tags, //
+			@P(t = "数量") Integer count, //
+			@P(t = "偏移量") Integer offset//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
-			List<Content> ret = contentService.queryContents(conn, contentType, status, level, upUserId, upChannelId,
-					tagKind, tagType, tags, count, offset);
+			List<Content> ret = contentService.queryContents(conn, contentType, status, Content.LEVEL_PUBLIC, upUserId,
+					upChannelId, tagKind, tagType, tags, count, offset);
 
 			return APIResponse.getNewSuccessResp(ret);
 		}
@@ -264,27 +182,26 @@ public class ContentController extends Controller {
 	 * 
 	 * @return 内容对象数组
 	 */
-	@POSTAPI(path = "searchContents")
-	public APIResponse searchContents(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-		Long userId = Param.getLong(c, "userId");
-
-		Byte contentType = Param.getByteDFLT(c, "contentType", null);
-		Byte status = Param.getByteDFLT(c, "status", null);
-		Byte level = Param.getByteDFLT(c, "level", null);
-		Long upUserId = Param.getLongDFLT(c, "upUserId", null);
-		Long upChannelId = Param.getLongDFLT(c, "upChannelId", null);
-
-		String keyword = Param.getString(c, "keyword");
-
-		Integer count = Param.getIntegerDFLT(c, "count", 10);
-		Integer offset = Param.getIntegerDFLT(c, "offset", 0);
-
+	@POSTAPI(//
+			path = "searchContents", //
+			des = "搜索标签", //
+			ret = "内容对象数组"//
+	)
+	public APIResponse searchContents(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "内容类型Content.TYPE", r = false) Byte contentType, //
+			@P(t = "内容状态Content.STATUS", r = false) Byte status, //
+			@P(t = "上传用户编号", r = false) Long upUserId, //
+			@P(t = "上传专栏编号", r = false) Long upChannelId, //
+			@P(t = "搜索关键字") String keyword, //
+			@P(t = "数量") Integer count, //
+			@P(t = "偏移量") Integer offset//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
-			List<Content> ret = contentService.searchContents(conn, contentType, status, level, upUserId, upChannelId,
-					keyword, count, offset);
+			List<Content> ret = contentService.searchContents(conn, contentType, status, Content.LEVEL_PUBLIC, upUserId,
+					upChannelId, keyword, count, offset);
 
 			return APIResponse.getNewSuccessResp(ret);
 		}
@@ -299,18 +216,21 @@ public class ContentController extends Controller {
 	 * 
 	 * @return 内容对象
 	 */
-	@POSTAPI(path = "getContentById")
-	public APIResponse getContentById(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-		Long userId = Param.getLong(c, "userId");
-		Long contentId = Param.getLong(c, "contentId");
-
+	@POSTAPI(//
+			path = "getContentById", //
+			des = "根据编号获取内容", //
+			ret = "编号对应的内容"//
+	)
+	public APIResponse getContentById(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "内容编号") Long contentId//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
 			Content ret = contentService.getContentById(conn, contentId);
 
-			return APIResponse.getNewSuccessResp(Param.checkNull(ret));
+			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(ret));
 		}
 	}
 
@@ -327,15 +247,17 @@ public class ContentController extends Controller {
 	 *            标签小类
 	 * @return 内容对应标签分组的标签数组，JSONArray格式
 	 */
-	@POSTAPI(path = "getContentTags")
-	public APIResponse getContentTags(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-		Long userId = Param.getLong(c, "userId");
-
-		Long contentId = Param.getLong(c, "contentId");
-		String tagKind = Param.getString(c, "tagKind");
-		String tagType = Param.getString(c, "tagType");
-
+	@POSTAPI(//
+			path = "getContentTags", //
+			des = "获取内容上的标签", //
+			ret = "标签名称数组（JSONArray）"//
+	)
+	public APIResponse getContentTags(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "内容编号") Long contentId, //
+			@P(t = "标签大类") String tagKind, //
+			@P(t = "标签小类") String tagType//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 

@@ -4,16 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
-import com.alibaba.fastjson.JSONObject;
 
-import zyxhj.core.domain.Tag;
 import zyxhj.core.domain.User;
+import zyxhj.core.service.ServiceUtils;
 import zyxhj.core.service.TagService;
-import zyxhj.utils.ServiceUtils;
-import zyxhj.utils.api.APIRequest;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
-import zyxhj.utils.api.Param;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
 
@@ -46,26 +42,114 @@ public class TagController extends Controller {
 	}
 
 	/**
-	 * 创建标签
 	 * 
-	 * @param userId
-	 *            用户编号，用于鉴权
-	 * @param groupKeyword
-	 *            标签分组关键字
-	 * @param name
-	 *            标签名称
-	 * 
-	 * @return 标签列表
 	 */
-	@POSTAPI(path = "createTag")
-	public APIResponse createTag(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
+	@POSTAPI(//
+			path = "createSysTagGroup", //
+			des = "创建系统标签分组", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse createSysTagGroup(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "标签分组关键字") String keyword, //
+			@P(t = "备注") String remark//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
-		Long userId = Param.getLong(c, "userId");
+			return APIResponse.getNewSuccessResp(tagService.createSysTagGroup(conn, keyword, remark));
+		}
+	}
 
-		String groupKeyword = Param.getString(c, "groupKeyword");
-		String name = Param.getString(c, "tagName");
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "createCustomTagGroup", //
+			des = "创建自定义标签分组", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse createCustomTagGroup(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "标签分组关键字") String keyword, //
+			@P(t = "备注") String remark//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
+			return APIResponse.getNewSuccessResp(tagService.createCustomTagGroup(conn, keyword, remark));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "updateCumtomTagGroup", //
+			des = "更新自定义标签分组", //
+			ret = "影响的记录行数"//
+	)
+	public APIResponse updateCumtomTagGroup(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "标签分组关键字") String keyword, //
+			@P(t = "备注") String remark//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
+
+			return APIResponse.getNewSuccessResp(tagService.updateCumtomTagGroup(conn, keyword, remark));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getSysTagGroups", //
+			des = "获取系统标签分组列表", //
+			ret = "标签分组对象列表"//
+	)
+	public APIResponse getSysTagGroups(//
+			@P(t = "用户编号") Long userId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
+
+			return APIResponse.getNewSuccessResp(tagService.getSysTagGroups(conn));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getCumtomTagGroups", //
+			des = "获取自定义标签分组列表", //
+			ret = "标签分组对象列表"//
+	)
+	public APIResponse getCumtomTagGroups(//
+			@P(t = "用户编号") Long userId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
+
+			return APIResponse.getNewSuccessResp(tagService.getCumtomTagGroups(conn));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "createTag", //
+			des = "创建标签", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse createTag(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "标签分组关键字") String groupKeyword, //
+			@P(t = "标签名称") String name//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
@@ -74,28 +158,62 @@ public class TagController extends Controller {
 	}
 
 	/**
-	 * 获取标签列表
 	 * 
-	 * @param userId
-	 *            用户编号，用于鉴权
-	 * @param groupKeyword
-	 *            标签分组关键字
-	 * 
-	 * @return 标签列表
 	 */
-	@POSTAPI(path = "getTags")
-	public APIResponse getTags(APIRequest req) throws Exception {
-		JSONObject c = Param.getReqContent(req);
-
-		Long userId = Param.getLong(c, "userId");
-
-		String groupKeyword = Param.getString(c, "groupKeyword");
-		Byte status = Param.getByteDFLT(c, "status", Tag.STATUS_ENABLED);
-
+	@POSTAPI(//
+			path = "getTags", //
+			des = "获取标签列表", //
+			ret = "标签列表"//
+	)
+	public APIResponse getTags(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "标签分组关键字") String groupKeyword, //
+			Byte status//
+	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
 			return APIResponse.getNewSuccessResp(tagService.getTags(conn, groupKeyword, status));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "enableTag", //
+			des = "启用标签", //
+			ret = "影响的记录行数"//
+	)
+	public APIResponse enableTag(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "标签编号") Long tagId, //
+			Byte status//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
+
+			return APIResponse.getNewSuccessResp(tagService.enableTag(conn, tagId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "disableTag", //
+			des = "禁用标签", //
+			ret = "影响的记录行数"//
+	)
+	public APIResponse disableTag(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "标签编号") Long tagId, //
+			Byte status//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
+
+			return APIResponse.getNewSuccessResp(tagService.disableTag(conn, tagId));
 		}
 	}
 }

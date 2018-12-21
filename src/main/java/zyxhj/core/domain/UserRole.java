@@ -1,7 +1,5 @@
 package zyxhj.core.domain;
 
-import java.util.Date;
-
 import zyxhj.utils.data.rds.RDSAnnEntity;
 import zyxhj.utils.data.rds.RDSAnnField;
 import zyxhj.utils.data.rds.RDSAnnID;
@@ -22,10 +20,16 @@ public class UserRole {
 	public Long id;
 
 	/**
-	 * 创建时间
+	 * 来源关键字
 	 */
-	@RDSAnnField(column = RDSAnnField.TIME)
-	public Date createDate;
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
+	public String origin;
+
+	/**
+	 * 所有者编号
+	 */
+	@RDSAnnField(column = RDSAnnField.ID)
+	public Long ownerId;
 
 	/**
 	 * 角色名称

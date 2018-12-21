@@ -2,6 +2,7 @@ package zyxhj.cms.domain;
 
 import java.util.Date;
 
+import zyxhj.utils.api.Controller.ENUMVALUE;
 import zyxhj.utils.data.rds.RDSAnnEntity;
 import zyxhj.utils.data.rds.RDSAnnField;
 import zyxhj.utils.data.rds.RDSAnnID;
@@ -13,19 +14,61 @@ import zyxhj.utils.data.rds.RDSAnnID;
 @RDSAnnEntity(alias = "tb_content")
 public class Content {
 
-	public static final Byte TYPE_ALBUM = 0;// 相册
-	public static final Byte TYPE_AUDIO = 1;// 音频
-	public static final Byte TYPE_VIDEO_CLIP = 2;// 短视频
-	public static final Byte TYPE_VIDEO = 3;// 视频
-	public static final Byte TYPE_LIVE = 4;// 直播
-	public static final Byte TYPE_H5 = 5;// H5文本
-	public static final Byte TYPE_POST = 6;// 帖子
-	public static final Byte TYPE_SET = 7;// 内容集合
+	public static enum TYPE implements ENUMVALUE {
+		ALBUM((byte) 0, "相册"), //
+		AUDIO((byte) 1, "音频"), //
+		VIDEO_CLIP((byte) 2, "短视频"), //
+		VIDEO((byte) 3, "视频"), //
+		LIVE((byte) 4, "直播"), //
+		H5((byte) 5, "H5文本"), //
+		POST((byte) 6, "帖子"), //
+		SET((byte) 7, "内容集合"),//
+		;
 
-	public static final Byte STATUS_DRAFT = 0; // 草稿
-	public static final Byte STATUS_NORMAL = 1; // 正常
-	public static final Byte STATUS_CLOSED = 2; // 已关闭
-	public static final Byte STATUS_DELETED = 3; // 已删除
+		private byte v;
+		private String txt;
+
+		private TYPE(byte v, String txt) {
+			this.v = v;
+			this.txt = txt;
+		}
+
+		@Override
+		public byte v() {
+			return v;
+		}
+
+		@Override
+		public String txt() {
+			return txt;
+		}
+	}
+
+	public static enum STATUS implements ENUMVALUE {
+		DRAFT((byte) 0, "草稿"), //
+		NORMAL((byte) 1, "正常"), //
+		CLOSED((byte) 2, "已关闭"), //
+		DELETED((byte) 3, "已删除"), //
+		;
+
+		private byte v;
+		private String txt;
+
+		private STATUS(byte v, String txt) {
+			this.v = v;
+			this.txt = txt;
+		}
+
+		@Override
+		public byte v() {
+			return v;
+		}
+
+		@Override
+		public String txt() {
+			return txt;
+		}
+	}
 
 	public static final Byte LEVEL_PUBLIC = 0; // 完全公开
 

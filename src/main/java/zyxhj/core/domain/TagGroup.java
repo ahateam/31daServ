@@ -15,7 +15,7 @@ public class TagGroup {
 	public static final Byte TYPE_CUSTOM = 1;
 
 	/**
-	 * 分组关键字
+	 * 分组关键字（分类前缀 + 关键字）
 	 */
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
@@ -28,7 +28,7 @@ public class TagGroup {
 	public Byte type;
 
 	/**
-	 * 标签名称，用于显示和存储
+	 * 备注
 	 */
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)

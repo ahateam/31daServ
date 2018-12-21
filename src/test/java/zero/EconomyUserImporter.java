@@ -76,11 +76,6 @@ public class EconomyUserImporter {
 		}
 	}
 
-	/**
-	 * 读取Excel测试，兼容 Excel 2003/2007/2010
-	 * 
-	 * @throws Exception
-	 */
 	public static void main(String[] args) throws Exception {
 		SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
 		try {
@@ -132,38 +127,38 @@ public class EconomyUserImporter {
 						System.out.print(obj + "\t");
 					}
 
-					Byte share = ORGRole.SHARE_NONE;
+					Byte share = ORGRole.SHARE.NONE.v();
 					Object objShare = array.get(3);
 					if (objShare.equals("股东户代表")) {
-						share = ORGRole.SHARE_REPRESENTATIVE;
+						share = ORGRole.SHARE.REPRESENTATIVE.v();
 					} else if (objShare.equals("股东")) {
-						share = ORGRole.SHARE_SHAREHOLDER;
+						share = ORGRole.SHARE.SHAREHOLDER.v();
 					} else {
-						share = ORGRole.SHARE_NONE;
+						share = ORGRole.SHARE.NONE.v();
 					}
 
-					Byte duty = ORGRole.DUTY_NONE;
+					Byte duty = ORGRole.DUTY.NONE.v();
 					Object objDuty = array.get(6);
 					if (objDuty.equals("董事长")) {
-						duty = ORGRole.DUTY_CHAIRMAN;
+						duty = ORGRole.DUTY.CHAIRMAN.v();
 					} else if (objDuty.equals("副董事长")) {
-						duty = ORGRole.DUTY_VICE_CHAIRMAN;
+						duty = ORGRole.DUTY.VICE_CHAIRMAN.v();
 					} else if (objDuty.equals("董事")) {
-						duty = ORGRole.DUTY_DIRECTOR;
+						duty = ORGRole.DUTY.DIRECTOR.v();
 					} else {
-						duty = ORGRole.DUTY_NONE;
+						duty = ORGRole.DUTY.NONE.v();
 					}
 
-					Byte visor = ORGRole.VISOR_NONE;
+					Byte visor = ORGRole.VISOR.NONE.v();
 					Object objVisor = array.get(7);
 					if (objVisor.equals("监事长")) {
-						visor = ORGRole.VISOR_CHAIRMAN;
+						visor = ORGRole.VISOR.CHAIRMAN.v();
 					} else if (objVisor.equals("副监事长")) {
-						visor = ORGRole.VISOR_VICE_SUPERVISOR;
+						visor = ORGRole.VISOR.VICE_CHAIRMAN.v();
 					} else if (objVisor.equals("监事")) {
-						visor = ORGRole.VISOR_SUPERVISOR;
+						visor = ORGRole.VISOR.SUPERVISOR.v();
 					} else {
-						visor = ORGRole.DUTY_NONE;
+						visor = ORGRole.DUTY.NONE.v();
 					}
 
 					orgService.importUser(conn, Long.parseLong("395239429596298"), array.get(2).toString(),
@@ -181,7 +176,7 @@ public class EconomyUserImporter {
 		}
 	}
 
-	private static Object getValue(Cell cell) {
+	public static Object getValue(Cell cell) {
 		Object obj = null;
 		switch (cell.getCellTypeEnum()) {
 		case BOOLEAN:
