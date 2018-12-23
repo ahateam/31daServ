@@ -90,12 +90,6 @@
 
 		<dependency>
 			<groupId>io.vertx</groupId>
-			<artifactId>vertx-web-templ-pebble</artifactId>
-			<version>3.6.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.vertx</groupId>
 			<artifactId>vertx-web</artifactId>
 			<version>3.6.2</version>
 		</dependency>
@@ -112,10 +106,6 @@
 			<artifactId>druid</artifactId>
 			<version>1.1.12</version>
 		</dependency>
-
-		<!-- <dependency> <groupId>io.pebbletemplates</groupId> <artifactId>pebble</artifactId> 
-			<version>3.0.6</version> </dependency> -->
-
 
 
 

@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -33,10 +34,10 @@ public abstract class Controller {
 
 	private static Logger log = LoggerFactory.getLogger(Controller.class);
 
-	public static final byte TYPE_GET = 0;
-	public static final byte TYPE_POST = 1;
-	public static final byte TYPE_GETAPI = 2;
-	public static final byte TYPE_POSTAPI = 3;
+	private static final byte TYPE_GET = 0;
+	private static final byte TYPE_POST = 1;
+	private static final byte TYPE_GETAPI = 2;
+	private static final byte TYPE_POSTAPI = 3;
 
 	public interface ENUMVALUE {
 		public byte v();
@@ -47,7 +48,9 @@ public abstract class Controller {
 	@Target(ElementType.PARAMETER)
 	@Retention(RetentionPolicy.RUNTIME)
 	protected @interface P {
-		public boolean r() default true;
+		public boolean r()
+
+		default true;
 
 		public String t();
 	}
@@ -55,6 +58,8 @@ public abstract class Controller {
 	@Target(ElementType.FIELD)
 	@Retention(RetentionPolicy.RUNTIME)
 	protected @interface ENUM {
+
+		public String des();
 	}
 
 	/**
@@ -93,7 +98,9 @@ public abstract class Controller {
 
 		public String des();
 
-		public String ret() default "";
+		public String ret()
+
+		default "";
 
 		// 默认需要验证，如登录，注册等方法
 		public boolean verify() default true;
@@ -109,7 +116,9 @@ public abstract class Controller {
 
 		public String des();
 
-		public String ret() default "";
+		public String ret()
+
+		default "";
 
 		// 默认需要验证，如登录，注册等方法
 		public boolean verify() default true;
@@ -127,7 +136,7 @@ public abstract class Controller {
 	 */
 	protected Map<String, Method> warningMethods = new HashMap<>();
 
-	protected Map<String, Field> enumFields = new LinkedHashMap<>();
+	protected Map<String, Object[]> enumFields = new LinkedHashMap<>();
 
 	private void addMethodIntoMap(Method m, String path, String des, String ret, byte type, boolean verify) {
 		if (StringUtils.isBlank(path)) {
@@ -162,7 +171,7 @@ public abstract class Controller {
 		for (Field f : fs) {
 			ENUM en = f.getAnnotation(ENUM.class);
 			if (null != en) {
-				enumFields.put(f.getName(), f);
+				enumFields.put(f.getName(), new Object[] { f, en });
 			}
 		}
 
@@ -245,7 +254,6 @@ public abstract class Controller {
 		} else {
 			doResponseFailure(resp, BaseRC.SERVER_ERROR, "missing controller method");
 		}
-
 	}
 
 	private void execGet(Method m, RoutingContext context, HttpServerRequest req, HttpServerResponse resp)
@@ -446,6 +454,108 @@ public abstract class Controller {
 		resp.write(content, CodecUtils.ENCODING_UTF8);
 	}
 
+	public Map<String, Object> getJSCodeNew() {
+
+		// 常量
+
+		Map<String, Object> retMap = new LinkedHashMap<>();
+
+		{
+
+			// 常量
+			JSONArray enums = new JSONArray();
+			Iterator<Entry<String, Object[]>> item = enumFields.entrySet().iterator();
+			while (item.hasNext()) {
+				Entry<String, Object[]> entry = item.next();
+				String key = entry.getKey();
+				Object[] value = (Object[]) entry.getValue();
+				Field fff = (Field) value[0];
+				ENUM eee = (ENUM) value[1];
+				try {
+					Object[] objs = (Object[]) fff.get(this);
+
+					JSONObject jo = new JSONObject();
+					jo.put("simpleName", fff.getType().getComponentType().getSimpleName());
+					jo.put("name", fff.getType().getComponentType().getName());
+					jo.put("des", eee.des());
+
+					ArrayList<Object> items = new ArrayList<>();
+					for (int i = 0; i < objs.length; i++) {
+						Object obj = objs[i];
+						ENUMVALUE ev = (ENUMVALUE) obj;
+
+						JSONObject it = new JSONObject();
+						it.put("key", ev.toString());
+						it.put("v", ev.v());
+						it.put("txt", ev.txt());
+
+						items.add(it);
+					}
+
+					jo.put("items", items);
+
+					enums.add(jo);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			retMap.put("enums", enums);
+		}
+
+		{
+			// 方法
+			JSONArray ms = new JSONArray();
+
+			Iterator<Entry<String, Object[]>> it = methods.entrySet().iterator();
+			while (it.hasNext()) {
+				Entry<String, Object[]> entry = it.next();
+				String key = entry.getKey();
+				Object[] value = entry.getValue();
+				// { m, des, ret, type, verify, count, parm, ann }
+				int xx = 0;
+				Method m = (Method) value[xx++];
+				String des = (String) value[xx++];
+				String ret = (String) value[xx++];
+				byte type = (byte) value[xx++];
+				boolean verify = (boolean) value[xx++];
+				int count = (int) value[xx++];
+				Parameter[] parm = (Parameter[]) value[xx++];
+
+				JSONObject jm = new JSONObject();
+				jm.put("node", node);
+				jm.put("key", key);
+				jm.put("des", des);
+				jm.put("ret", ret);
+
+				ArrayList<Object> ps = new ArrayList<>();
+
+				for (int i = 0; i < count; i++) {
+					Parameter p = parm[i];
+
+					JSONObject item = new JSONObject();
+					item.put("name", p.getName());
+					item.put("type", p.getType().getSimpleName());
+
+					item.put("name", p.getName());
+					item.put("name", p.getName());
+
+					P ppp = p.getAnnotation(P.class);
+					if (ppp != null) {
+						item.put("r", ppp.r());
+						item.put("t", ppp.t());
+					}
+					ps.add(item);
+				}
+				jm.put("parms", ps);
+
+				ms.add(jm);
+			}
+			retMap.put("methods", ms);
+		}
+
+		return retMap;
+	}
+
 	public String getJSCode() {
 
 		StringBuffer sb = new StringBuffer();
@@ -458,15 +568,16 @@ public abstract class Controller {
 				"\t##########################################################################################\t")
 				.append(ln2);
 
-		Iterator<Entry<String, Field>> iten = enumFields.entrySet().iterator();
+		Iterator<Entry<String, Object[]>> iten = enumFields.entrySet().iterator();
 		while (iten.hasNext()) {
-			Entry<String, Field> entry = iten.next();
+			Entry<String, Object[]> entry = iten.next();
 			String key = entry.getKey();
-			Field value = entry.getValue();
+			Object[] value = entry.getValue();
+			Field fff = (Field) value[0];
 			try {
-				Object[] objs = (Object[]) value.get(this);
-				sb.append("const ").append(value.getType().getComponentType().getSimpleName()).append(" = {")
-						.append(" // ").append(value.getType().getComponentType().getName()).append(ln);
+				Object[] objs = (Object[]) fff.get(this);
+				sb.append("const ").append(fff.getType().getComponentType().getSimpleName()).append(" = {")
+						.append(" // ").append(fff.getType().getComponentType().getName()).append(ln);
 				for (int i = 0; i < objs.length; i++) {
 					Object obj = objs[i];
 					ENUMVALUE ev = (ENUMVALUE) obj;

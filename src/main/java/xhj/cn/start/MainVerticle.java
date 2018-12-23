@@ -1,8 +1,8 @@
 package xhj.cn.start;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -15,12 +15,11 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.templ.pebble.PebbleTemplateEngine;
 import zyxhj.cms.controller.ContentController;
+import zyxhj.core.controller.ServerController;
 import zyxhj.core.controller.TagController;
 import zyxhj.core.controller.TestController;
 import zyxhj.core.controller.UserController;
@@ -39,18 +38,22 @@ public class MainVerticle extends AbstractVerticle {
 
 	protected Map<String, Controller> ctrlMap;
 
-	private PebbleTemplateEngine engine;
-
 	public static void main(String[] args) {
 		Vertx vertx = Vertx.vertx();
 		vertx.deployVerticle(new MainVerticle());
 	}
 
-	public void init() {
+	private void init() {
 
 		DataSourceUtils.initDataSourceConfig();
 
-		ctrlMap = new HashMap<>();
+		ctrlMap = new LinkedHashMap<>();
+
+		initCtrl(ctrlMap, ServerController.getInstance("server", this));
+
+		initCtrl(ctrlMap, ORGController.getInstance("org"));
+
+		initCtrl(ctrlMap, VoteController.getInstance("vote"));
 
 		initCtrl(ctrlMap, TestController.getInstance("test"));
 
@@ -61,10 +64,6 @@ public class MainVerticle extends AbstractVerticle {
 		initCtrl(ctrlMap, ContentController.getInstance("content"));
 
 		initCtrl(ctrlMap, HttpTestController.getInstance("httptest"));
-
-		initCtrl(ctrlMap, ORGController.getInstance("org"));
-
-		initCtrl(ctrlMap, VoteController.getInstance("vote"));
 
 		// putCtrlInMap(ctrlMap, StoreController.getInstance("store"));
 
@@ -99,9 +98,6 @@ public class MainVerticle extends AbstractVerticle {
 		router.route().handler(BodyHandler.create());
 		router.route("/*").handler(this::handleHttpRequest);
 
-		// 增加一个模版引擎
-		engine = PebbleTemplateEngine.create(vertx);
-
 		httpServer.requestHandler(router);
 		httpServer.listen(8080, res -> {
 			if (res.succeeded()) {
@@ -119,7 +115,6 @@ public class MainVerticle extends AbstractVerticle {
 		HttpServerRequest req = context.request();
 		HttpServerResponse resp = context.response();
 
-		resp.putHeader("content-type", "application/json;charset=UTF-8");
 		resp.putHeader("Access-Control-Allow-Origin", "*");// 设置跨域，目前不限制。TODO，将来需要设定指定的来源
 
 		System.out.println(StringUtils.join(req.method(), " - ", req.path()));
@@ -143,9 +138,12 @@ public class MainVerticle extends AbstractVerticle {
 
 				if (startInd + 1 >= nodes.length) {
 					// 只有SERVER_NAME节点，显示list
+					resp.putHeader("content-type", "application/json;charset=UTF-8");
 					Controller.writeThings(resp, getCtrldocs());
 				} else if (startInd + 2 >= nodes.length) {
 					// 只有controller节点，没有method节点，返回错误
+					resp.putHeader("content-type", "application/json;charset=UTF-8");
+
 					String node = nodes[startInd + 1];
 					Controller ctrl = ctrlMap.get(node);
 					if (ctrl == null) {
@@ -159,12 +157,15 @@ public class MainVerticle extends AbstractVerticle {
 					String method = nodes[startInd + 2];
 					Controller ctrl = ctrlMap.get(node);
 					if (null != ctrl) {
+						resp.putHeader("content-type", "application/json;charset=UTF-8");
 						try {
 							ctrl.exec(method, context, req, resp);
 						} catch (Exception e) {
 							Controller.writeThings(resp, e.getMessage());
 						}
 					} else {
+						// 最好不设置content-type的header，否则文件处理可能出错
+
 						// 返回404错误
 						// 没有找到合适的ctrl，则可能是模版或静态资源文件
 						if (node.equalsIgnoreCase(PATH_ASSET)) {
@@ -172,35 +173,18 @@ public class MainVerticle extends AbstractVerticle {
 							// -tmp 模版引擎处理
 							int ind = reqPath.indexOf(PATH_ASSET) + PATH_ASSET.length();
 							String temp = reqPath.substring(ind);
-							JsonObject datax = new JsonObject().put("name", "Vert.x Web").put("path", "xxxxx");
 
-							String fileName = StringUtils.join("assets/", temp);
-
+							String fileName = StringUtils.join("assets", temp);
 							if (vertx.fileSystem().existsBlocking(fileName)) {
-								// 静态文件存在
+								// 处理静态文件
 								resp.sendFile(fileName);
 								// 需要retrun，防止本函数写入终止符
 								return;
 							} else {
-								// 文件不存在,尝试模版
-								String pebFileName = StringUtils.join(fileName, ".peb");
-								if (vertx.fileSystem().existsBlocking(pebFileName)) {
-									// 模版文件存在
-									engine.render(datax, fileName, res -> {
-										if (res.succeeded()) {
-											// 异步过程结束
-											resp.end(res.result());
-										}
-									});
-									// 异步返回了文件结果，需要retrun，防止本函数写入终止符
-									return;
-								} else {
-									Controller.doResponseFailure(resp, BaseRC.SERVER_ERROR,
-											StringUtils.join("missing file ", fileName));
-								}
+								// 模版和静态文件都不存在
+								Controller.doResponseFailure(resp, BaseRC.SERVER_ERROR,
+										StringUtils.join("missing file >", fileName));
 							}
-
-							return;
 						} else {
 							Controller.doResponseFailure(resp, BaseRC.SERVER_ERROR,
 									StringUtils.join("missing controller ", node));
@@ -210,6 +194,7 @@ public class MainVerticle extends AbstractVerticle {
 			}
 		} else {
 			// 返回404错误
+			resp.putHeader("content-type", "application/json;charset=UTF-8");
 			Controller.doResponseFailure(resp, BaseRC.SERVER_ERROR, StringUtils.join("missing controller ", reqPath));
 		}
 
@@ -242,6 +227,14 @@ public class MainVerticle extends AbstractVerticle {
 		} else {
 			return null;
 		}
+	}
+
+	public Map<String, Controller> getCtrlList() {
+		return ctrlMap;
+	}
+
+	public Controller getCtrlDetail(String name) {
+		return ctrlMap.get(name);
 	}
 
 	private String getCtrldocs() {

@@ -11,7 +11,7 @@ import com.alibaba.fastjson.JSONArray;
 import zyxhj.cms.domain.Content;
 import zyxhj.cms.service.ContentService;
 import zyxhj.core.domain.User;
-import zyxhj.core.service.ServiceUtils;
+import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSource;
@@ -44,10 +44,10 @@ public class ContentController extends Controller {
 		}
 	}
 
-	@ENUM
+	@ENUM(des = "内容类型")
 	public Content.TYPE[] contentTypes = Content.TYPE.values();
 
-	@ENUM
+	@ENUM(des = "内容状态")
 	public Content.STATUS[] contentStatus = Content.STATUS.values();
 
 	/**

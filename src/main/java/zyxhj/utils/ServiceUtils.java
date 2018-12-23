@@ -1,8 +1,10 @@
-package zyxhj.core.service;
+package zyxhj.utils;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.core.domain.User;
+import zyxhj.core.service.AppService;
+import zyxhj.core.service.UserService;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
 

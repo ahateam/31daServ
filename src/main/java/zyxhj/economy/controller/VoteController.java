@@ -42,16 +42,16 @@ public class VoteController extends Controller {
 		}
 	}
 
-	@ENUM
+	@ENUM(des = "投票类型")
 	public Vote.TYPE[] voteTypes = Vote.TYPE.values();
 
-	@ENUM
+	@ENUM(des = "投票参与人群")
 	public Vote.CROWD[] voteCrowds = Vote.CROWD.values();
 
-	@ENUM
+	@ENUM(des = "投票模版类型")
 	public Vote.TEMPLATE[] voteTemplates = Vote.TEMPLATE.values();
 
-	@ENUM
+	@ENUM(des = "投票状态")
 	public Vote.STATUS[] voteStatus = Vote.STATUS.values();
 
 	/**

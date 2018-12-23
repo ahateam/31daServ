@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 
-import zyxhj.core.service.ServiceUtils;
 import zyxhj.economy.domain.ORGRole;
 import zyxhj.economy.service.AssetService;
 import zyxhj.economy.service.ORGService;
+import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSource;
@@ -45,13 +45,13 @@ public class ORGController extends Controller {
 		}
 	}
 
-	@ENUM
+	@ENUM(des = "股东会角色")
 	public ORGRole.SHARE[] shareTypes = ORGRole.SHARE.values();
 
-	@ENUM
+	@ENUM(des = "董事会角色")
 	public ORGRole.DUTY[] dutyTypes = ORGRole.DUTY.values();
 
-	@ENUM
+	@ENUM(des = "监事会角色")
 	public ORGRole.VISOR[] visorTypes = ORGRole.VISOR.values();
 
 	// /**

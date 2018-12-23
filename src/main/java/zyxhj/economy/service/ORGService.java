@@ -15,7 +15,6 @@ import zyxhj.core.domain.LoginBo;
 import zyxhj.core.domain.User;
 import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
-import zyxhj.core.service.ServiceUtils;
 import zyxhj.economy.domain.ORG;
 import zyxhj.economy.domain.ORGRole;
 import zyxhj.economy.domain.ORGUserBo;
@@ -23,6 +22,7 @@ import zyxhj.economy.repository.ORGRepository;
 import zyxhj.economy.repository.ORGRoleRepository;
 import zyxhj.utils.CacheCenter;
 import zyxhj.utils.IDUtils;
+import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
 
