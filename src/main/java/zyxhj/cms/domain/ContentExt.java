@@ -10,7 +10,7 @@ import zyxhj.utils.data.rds.RDSAnnID;
  * 收费或隐秘内容的数据以及其它扩展内容都放这里</br>
  * 用ots比较合适
  */
-@RDSAnnEntity(alias = "tb_content_ext")
+@RDSAnnEntity(alias = "tb_cms_content_ext")
 public class ContentExt {
 
 	@RDSAnnID

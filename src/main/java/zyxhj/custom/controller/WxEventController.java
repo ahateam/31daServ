@@ -1,10 +1,17 @@
 package zyxhj.custom.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -20,7 +27,6 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
 import zyxhj.custom.service.WxDataService;
 import zyxhj.custom.service.WxFuncService;
-import zyxhj.custom.util.HttpClientUtil;
 import zyxhj.utils.CodecUtils;
 import zyxhj.utils.api.Controller;
 
@@ -82,7 +88,7 @@ public class WxEventController extends Controller {
 				public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context,
 						WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
 					String detail = wxMpService.getCardService().getCardDetail(wxMessage.getCardId());
-					Map<String, Object> json2Map = HttpClientUtil.parseJSON2Map(detail);
+					Map<String, Object> json2Map = parseJSON2Map(detail);
 					String title = (String) json2Map.get("title");
 					System.err.println("场景值：  " + wxMessage.getOuterStr());
 					WxMpXmlOutTextMessage m = WxMpXmlOutMessage.TEXT().content("领取卡券：" + title)
@@ -111,7 +117,7 @@ public class WxEventController extends Controller {
 					.rule().async(false).msgType(WxConsts.XmlMsgType.EVENT).event(WxConsts.EventType.SUBSCRIBE)
 					.handler(handler).end()
 
-					.rule().async(false).msgType(WxConsts.XmlMsgType.TEXT).content("test").handler(testHander).end()
+					.rule().async(false).msgType(WxConsts.XmlMsgType.TEXT).handler(testHander).end()
 
 					.rule().async(false).msgType(WxConsts.XmlMsgType.EVENT).event(WxConsts.EventType.CARD_USER_GET_CARD)
 					.handler(cardHandler).end()
@@ -125,10 +131,10 @@ public class WxEventController extends Controller {
 	}
 
 	// 微信监听入口
-	@GET(path = "monitorEvent", //
-			des = "monitorEvent测试"//
+	@GET(path = "entry", //
+			des = "微信消息入口"//
 	)
-	public void monitorEvent(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) {
+	public void entry(RoutingContext context, HttpServerRequest req, HttpServerResponse resp) {
 		System.err.println("testIn");
 
 		String strRet = "failure";
@@ -185,4 +191,36 @@ public class WxEventController extends Controller {
 		resp.write(str);
 	}
 
+	/**
+	 * @描述 json串转换map
+	 * @param bizData
+	 * @return
+	 */
+	public static Map<String, Object> parseJSON2Map(String bizData) {
+		Map<String, Object> ret = new HashMap<String, Object>();
+		try {
+			JSONObject bizDataJson = JSONObject.parseObject(bizData);
+			// 获取json对象值
+			for (Object key : bizDataJson.keySet()) {
+				Object value = bizDataJson.get(key);
+				// 判断值是否为json数组类型
+				if (value instanceof JSONArray) {
+					// 如果为json数组类型迭代循环取值
+					List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+					Iterator<Object> it = ((JSONArray) value).iterator();
+
+					while (it.hasNext()) {
+						JSONObject json2 = (JSONObject) it.next();
+						list.add(parseJSON2Map(json2.toString()));
+					}
+					ret.put(String.valueOf(key), list);
+				} else {
+					ret.put(String.valueOf(key), String.valueOf(value));
+				}
+			}
+		} catch (Exception e) {
+			// log.info();
+		}
+		return ret;
+	}
 }

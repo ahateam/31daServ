@@ -61,7 +61,7 @@ public class ORGRoleRepository extends RDSRepository<ORGRole> {
 		} else {
 			StringBuffer sb = new StringBuffer("WHERE ");
 
-			boolean has = true;
+			boolean hasShare = true;
 			if (cs.contains(Vote.CROWD.SHAREHOLDER.v()) && cs.contains(Vote.CROWD.REPRESENTATIVE.v())) {
 				// 股东和股东代表都参加
 				// share 不等于 none
@@ -73,35 +73,40 @@ public class ORGRoleRepository extends RDSRepository<ORGRole> {
 				// 股东代表参加
 				sb.append("share=").append(ORGRole.SHARE.REPRESENTATIVE.v());
 			} else {
-				has = false;
+				hasShare = false;
 			}
 
-			if (has) {
-				// 前面被插入过语句，需要增加AND连接符
-				sb.append(" OR ");
-			}
-
-			has = true;
+			boolean hasDuty = true;
 			if (cs.contains(Vote.CROWD.DIRECTOR.v())) {
+
+				if (hasShare) {
+					// 前面被插入过share，需要增加AND连接符
+					sb.append(" OR ");
+				}
+
 				// 董事会参加
 				// duty 不等于 none
 				sb.append("duty<>").append(ORGRole.DUTY.NONE.v());
 			} else {
-				has = false;
+				hasDuty = false;
 			}
 
-			if (has) {
-				// 前面被插入过语句，需要增加AND连接符
-				sb.append(" OR ");
-			}
-
-			has = true;
+			boolean hasVisor = true;
 			if (cs.contains(Vote.CROWD.SUPERVISOR.v())) {
+
+				if (hasShare || hasDuty) {
+					// 前面被插入过语句，需要增加AND连接符
+					sb.append(" OR ");
+				}
+
 				// 监事会参加
 				// visor 不等于 none
 				sb.append("visor<>").append(ORGRole.VISOR.NONE.v());
+			} else {
+				hasVisor = false;
 			}
 
+			System.out.println(sb.toString());
 			return count(conn, sb.toString(), new Object[] {});
 		}
 	}

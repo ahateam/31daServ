@@ -33,7 +33,7 @@ public class DataSourceUtils {
 	}
 
 	private static Map<String, DataSource> dsMap = new HashMap<>();
-	public static Map<String, Properties> configMap = new HashMap<String, Properties>();
+	private static Map<String, Properties> configMap = new HashMap<String, Properties>();
 
 	/**
 	 * 

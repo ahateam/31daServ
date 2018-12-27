@@ -1,14 +1,9 @@
 package zyxhj.custom.controller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.alibaba.fastjson.JSONObject;
 
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -20,7 +15,6 @@ import me.chanjar.weixin.mp.api.impl.WxMpServiceImpl;
 import me.chanjar.weixin.mp.bean.card.WxMpCardQrcodeCreateResult;
 import me.chanjar.weixin.mp.bean.result.WxMpUserList;
 import me.chanjar.weixin.mp.bean.store.WxMpStoreInfo;
-import zyxhj.custom.util.HttpClientUtil;
 import zyxhj.utils.CodecUtils;
 import zyxhj.utils.api.Controller;
 
@@ -59,51 +53,18 @@ public class HttpTestController extends Controller {
 	/*
 	 * 获取用户列表（test）
 	 */
-	@GET(path = "getTest", //
-			des = "GET测试"//
+	@GET(path = "getUserList", //
+			des = "获取用户列表（test）"//
 	)
-	public void getTest(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {
+	public void getUserList(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {
 		WxMpUserList wxUserList = wxMpService.getUserService().userList(null);
 		ret(resp, wxUserList.toString());
-
-		// WxMenu wxMenu = new WxMenu();
-		// WxMenuButton button = new WxMenuButton();
-		// button.setType("view");
-		// button.setName("test");
-		// button.setUrl("http://aha-element.oss-cn-hangzhou.aliyuncs.com/index.html");
-		// List<WxMenuButton> list = new ArrayList<WxMenuButton>();
-		// list.add(button);
-		// wxMenu.setButtons(list);
-		// // 设置菜单
-		// wxMpService.getMenuService().menuCreate(wxMenu);
-
-	}
-
-	/**
-	 */
-	@GET(path = "getTest2", //
-			des = "GET测试2"//
-	)
-	public void getTest2(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {
-		Map<String, Object> map = new HashMap<String, Object>();
-		List<String> list = new ArrayList<String>();
-		list.add("CARD_STATUS_VERIFY_OK");
-		map.put("offset", 0);
-		map.put("count", 10);
-		map.put("status_list", list);
-		String json = JSONObject.toJSONString(map);
-		String reJson = HttpClientUtil
-				.post("https://api.weixin.qq.com/card/batchget?access_token=" + wxMpService.getAccessToken(), json);
-		System.err.println("accessToken:  " + wxMpService.getAccessToken());
-		Map<String, Object> json2Map = HttpClientUtil.parseJSON2Map(reJson);
-		System.err.println(json2Map);
-		ret(resp, reJson);
 	}
 
 	/**
 	 */
 	@GET(path = "getTest3", //
-			des = "GET测试3"//
+			des = "创建二维码"//
 	)
 	public void getTest3(HttpServerRequest req, HttpServerResponse resp, RoutingContext context)
 			throws WxErrorException {

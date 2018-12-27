@@ -13,8 +13,8 @@ import zyxhj.utils.data.rds.RDSAnnID;
 public class Tag {
 
 	public static enum STATUS implements ENUMVALUE {
-		ENABLED((byte) 0, "启用"), //
-		DISABLED((byte) 1, "启用"), //
+		DISABLED((byte) 0, "启用"), //
+		ENABLED((byte) 1, "启用"), //
 		;
 
 		private byte v;

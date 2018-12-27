@@ -430,8 +430,7 @@ public class VoteService {
 
 	private boolean checkPrmission(Byte[] crowd, Byte t) {
 		for (int i = 0; i < crowd.length; i++) {
-			if (crowd[i] == Vote.CROWD.ALL.v()) {
-				// 包含一个全部
+			if (crowd[i] == t) {
 				return true;
 			}
 		}
@@ -439,6 +438,7 @@ public class VoteService {
 	}
 
 	private boolean hasPrmission(Byte[] crowd, ORGRole or) {
+
 		if (checkPrmission(crowd, Vote.CROWD.ALL.v())) {
 			return true;
 		}
@@ -573,9 +573,12 @@ public class VoteService {
 
 		List<VoteOption> options = optionRepository.getListByKey(conn, "vote_id", voteId, 512, 0);
 
+		int ticketCount = ticketRepository.countByKey(conn, "vote_id", voteId);
+
 		JSONObject ret = new JSONObject();
 		ret.put("vote", vote);
 		ret.put("ops", options);
+		ret.put("ticketCount", ticketCount);
 
 		return ret;
 	}

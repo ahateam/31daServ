@@ -10,8 +10,8 @@ import zyxhj.utils.data.rds.RDSAnnID;
  * 用户已购买内容
  *
  */
-@RDSAnnEntity(alias = "tb_content_bookmark")
-public class ContentBookmark {
+@RDSAnnEntity(alias = "tb_cms_bookmark")
+public class Bookmark {
 
 	/**
 	 * 用户编号，ID列，无需索引

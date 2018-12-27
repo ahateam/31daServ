@@ -48,9 +48,7 @@ public abstract class Controller {
 	@Target(ElementType.PARAMETER)
 	@Retention(RetentionPolicy.RUNTIME)
 	protected @interface P {
-		public boolean r()
-
-		default true;
+		public boolean r() default true;
 
 		public String t();
 	}
@@ -259,13 +257,7 @@ public abstract class Controller {
 	private void execGet(Method m, RoutingContext context, HttpServerRequest req, HttpServerResponse resp)
 			throws IOException {
 		try {
-			HttpMethod reqMethod = req.method();
-			if (reqMethod.equals(HttpMethod.GET)) {
-				m.invoke(this, context, req, resp);
-			} else {
-				// 不是GET方法
-				doResponseFailure(resp, BaseRC.SERVER_ERROR, "must be HTTP GET method");
-			}
+			m.invoke(this, context, req, resp);
 		} catch (InvocationTargetException ite) {
 			// 反射的代理异常，剥壳后才是真实的异常
 			String targetException = ite.getTargetException().getMessage();
@@ -279,13 +271,7 @@ public abstract class Controller {
 	private void execPost(Method m, RoutingContext context, HttpServerRequest req, HttpServerResponse resp)
 			throws IOException {
 		try {
-			HttpMethod reqMethod = req.method();
-			if (reqMethod.equals(HttpMethod.POST)) {
-				m.invoke(this, context, req, resp);
-			} else {
-				// 不是POST方法
-				doResponseFailure(resp, BaseRC.SERVER_ERROR, "must be HTTP POST method");
-			}
+			m.invoke(this, context, req, resp);
 		} catch (InvocationTargetException ite) {
 			// 反射的代理异常，剥壳后才是真实的异常
 			String targetException = ite.getTargetException().getMessage();

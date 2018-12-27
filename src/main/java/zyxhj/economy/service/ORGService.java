@@ -21,6 +21,7 @@ import zyxhj.economy.domain.ORGUserBo;
 import zyxhj.economy.repository.ORGRepository;
 import zyxhj.economy.repository.ORGRoleRepository;
 import zyxhj.utils.CacheCenter;
+import zyxhj.utils.ExcelUtils;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.api.BaseRC;
@@ -396,5 +397,58 @@ public class ORGService {
 	public List<ORGRole> getORGRolesLikeIDNumber(DruidPooledConnection conn, Long orgId, String idNumber, Integer count,
 			Integer offset) throws Exception {
 		return orgRoleRepository.getORGRolesLikeIDNumber(conn, orgId, idNumber, count, offset);
+	}
+
+	/**
+	 * 导入组织用户列表
+	 */
+	public void importORGUsers(DruidPooledConnection conn, Long orgId, String url) throws Exception {
+		// 1行表头，8列，文件格式写死的
+		List<List<Object>> table = ExcelUtils.readExcelOnline(url, 1, 8, 0);
+
+		for (List<Object> row : table) {
+
+			String realName = ExcelUtils.getString(row.get(0));
+			String idNumber = ExcelUtils.getString(row.get(1));
+			String mobile = ExcelUtils.getString(row.get(2));
+			String rShare = ExcelUtils.getString(row.get(3));
+			Integer shareAmount = ExcelUtils.parseInt(row.get(4));
+			Integer weight = ExcelUtils.parseInt(row.get(5));
+			String rDuty = ExcelUtils.getString(row.get(6));
+			String rVisor = ExcelUtils.getString(row.get(7));
+
+			Byte share = ORGRole.SHARE.NONE.v();
+			if (rShare.equals("股东户代表")) {
+				share = ORGRole.SHARE.REPRESENTATIVE.v();
+			} else if (rShare.equals("股东")) {
+				share = ORGRole.SHARE.SHAREHOLDER.v();
+			} else {
+				share = ORGRole.SHARE.NONE.v();
+			}
+
+			Byte duty = ORGRole.DUTY.NONE.v();
+			if (rDuty.equals("董事长")) {
+				duty = ORGRole.DUTY.CHAIRMAN.v();
+			} else if (rDuty.equals("副董事长")) {
+				duty = ORGRole.DUTY.VICE_CHAIRMAN.v();
+			} else if (rDuty.equals("董事")) {
+				duty = ORGRole.DUTY.DIRECTOR.v();
+			} else {
+				duty = ORGRole.DUTY.NONE.v();
+			}
+
+			Byte visor = ORGRole.VISOR.NONE.v();
+			if (rVisor.equals("监事长")) {
+				visor = ORGRole.VISOR.CHAIRMAN.v();
+			} else if (rVisor.equals("副监事长")) {
+				visor = ORGRole.VISOR.VICE_CHAIRMAN.v();
+			} else if (rVisor.equals("监事")) {
+				visor = ORGRole.VISOR.SUPERVISOR.v();
+			} else {
+				visor = ORGRole.DUTY.NONE.v();
+			}
+
+			importUser(conn, orgId, mobile, realName, idNumber, share, shareAmount, weight, duty, visor);
+		}
 	}
 }

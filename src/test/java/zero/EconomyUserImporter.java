@@ -178,7 +178,7 @@ public class EconomyUserImporter {
 
 	public static Object getValue(Cell cell) {
 		Object obj = null;
-		switch (cell.getCellTypeEnum()) {
+		switch (cell.getCellType()) {
 		case BOOLEAN:
 			obj = cell.getBooleanCellValue();
 			break;

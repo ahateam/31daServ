@@ -62,8 +62,8 @@ public class Asset {
 	/**
 	 * 构建时间
 	 */
-	@RDSAnnField(column = RDSAnnField.TIME)
-	public Date buildTime;
+	@RDSAnnField(column = "VARCHAR(16)")
+	public String buildTime;
 
 	/**
 	 * 原始价格（万元）
@@ -152,13 +152,13 @@ public class Asset {
 	 * （不动产属性）起点位置
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String loctionStart;
+	public String locationStart;
 
 	/**
 	 * （不动产属性）终点位置
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String loctionEnd;
+	public String locationEnd;
 
 	/**
 	 * （不动产属性）起点坐标

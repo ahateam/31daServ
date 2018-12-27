@@ -23,7 +23,8 @@ import zyxhj.core.controller.ServerController;
 import zyxhj.core.controller.TagController;
 import zyxhj.core.controller.TestController;
 import zyxhj.core.controller.UserController;
-import zyxhj.custom.controller.HttpTestController;
+import zyxhj.custom.controller.WxEventController;
+import zyxhj.economy.controller.AssetController;
 import zyxhj.economy.controller.ORGController;
 import zyxhj.economy.controller.VoteController;
 import zyxhj.utils.api.BaseRC;
@@ -55,6 +56,8 @@ public class MainVerticle extends AbstractVerticle {
 
 		initCtrl(ctrlMap, VoteController.getInstance("vote"));
 
+		initCtrl(ctrlMap, AssetController.getInstance("asset"));
+
 		initCtrl(ctrlMap, TestController.getInstance("test"));
 
 		initCtrl(ctrlMap, UserController.getInstance("user"));
@@ -63,7 +66,7 @@ public class MainVerticle extends AbstractVerticle {
 
 		initCtrl(ctrlMap, ContentController.getInstance("content"));
 
-		initCtrl(ctrlMap, HttpTestController.getInstance("httptest"));
+		initCtrl(ctrlMap, WxEventController.getInstance("wx"));
 
 		// putCtrlInMap(ctrlMap, StoreController.getInstance("store"));
 

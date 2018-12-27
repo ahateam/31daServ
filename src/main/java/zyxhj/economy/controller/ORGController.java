@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.economy.domain.ORGRole;
-import zyxhj.economy.service.AssetService;
 import zyxhj.economy.service.ORGService;
 import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.api.APIResponse;
@@ -30,8 +29,6 @@ public class ORGController extends Controller {
 	private DataSource dsRds;
 	private ORGService orgService;
 
-	private AssetService assetService;
-
 	private ORGController(String node) {
 		super(node);
 		try {
@@ -39,7 +36,6 @@ public class ORGController extends Controller {
 
 			orgService = ORGService.getInstance();
 
-			assetService = AssetService.getInstance();
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -406,82 +402,20 @@ public class ORGController extends Controller {
 		}
 	}
 
-	//////////////////////////// assets
-
-	// /**
-	// *
-	// */
-	// @POSTAPI(//
-	// path = "createAsset", //
-	// des = "创建资产", //
-	// ret = "所创建的对象"//
-	// )
-	// public APIResponse createAsset(//
-	// @P(t = "组织编号") Long orgId, //
-	// @P(t = "标题") String title, //
-	// @P(t = "备注") String remark, //
-	// @P(t = "数据（JSON）") String data //
-	// ) throws Exception {
-	// try (DruidPooledConnection conn = (DruidPooledConnection)
-	// dsRds.openConnection()) {
-	// return APIResponse.getNewSuccessResp(assetService.createAsset(conn, orgId,
-	// title, remark, data));
-	// }
-	// }
-	//
-	// /**
-	// *
-	// */
-	// @POSTAPI(//
-	// path = "editAsset", //
-	// des = "编辑资产", //
-	// ret = "受影响的记录数"//
-	// )
-	// public APIResponse editAsset(//
-	// @P(t = "组织编号") Long assetId, //
-	// @P(t = "标题") String title, //
-	// @P(t = "备注") String remark, //
-	// @P(t = "数据（JSON）") String data //
-	// ) throws Exception {
-	// try (DruidPooledConnection conn = (DruidPooledConnection)
-	// dsRds.openConnection()) {
-	// return APIResponse.getNewSuccessResp(assetService.editAsset(conn, assetId,
-	// title, remark, data));
-	// }
-	// }
-
 	/**
 	 * 
 	 */
 	@POSTAPI(//
-			path = "delAsset", //
-			des = "删除资产", //
-			ret = "受影响的记录数"//
+			path = "importORGUsers", //
+			des = "导入组织用户列表" //
 	)
-	public APIResponse delAsset(//
-			@P(t = "组织编号") Long assetId //
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.delAsset(conn, assetId));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getAssets", //
-			des = "获取组织的资产列表", //
-			ret = "Asset对象列表"//
-	)
-	public APIResponse getAssets(//
+	public APIResponse importORGUsers(//
 			@P(t = "组织编号") Long orgId, //
-			Integer count, //
-			Integer offset//
+			@P(t = "excel文件url") String url//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getAssets(conn, orgId, count, offset));
+			orgService.importORGUsers(conn, orgId, url);
+			return APIResponse.getNewSuccessResp();
 		}
 	}
-
 }

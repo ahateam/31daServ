@@ -10,7 +10,7 @@ import zyxhj.utils.data.rds.RDSAnnID;
  * 内容频道（专栏）实体
  *
  */
-@RDSAnnEntity(alias = "tb_channel")
+@RDSAnnEntity(alias = "tb_cms_channel")
 public class Channel {
 
 	public static final Byte STATUS_NORMAL = 0; // 正常

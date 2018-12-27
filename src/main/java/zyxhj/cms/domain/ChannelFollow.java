@@ -11,7 +11,7 @@ import zyxhj.utils.data.rds.RDSAnnID;
  * （用户关注专栏）
  *
  */
-@RDSAnnEntity(alias = "tb_channel_follow")
+@RDSAnnEntity(alias = "tb_cms_channel_follow")
 public class ChannelFollow {
 
 	/**

@@ -154,33 +154,6 @@ public class ContentController extends Controller {
 
 	/**
 	 * 
-	 * @param userId
-	 *            用户编号，用于鉴权
-	 * @param contentType
-	 *            （选填，默认不参与查询）</br>
-	 *            内容类型（可空）
-	 * @param status
-	 *            （选填，默认不参与查询）</br>
-	 *            内容状态
-	 * @param level
-	 *            （选填，默认不参与查询）</br>
-	 *            内容等级
-	 * @param upUserId
-	 *            （选填，默认不参与查询）</br>
-	 *            上传者的用户编号
-	 * @param upChannelId
-	 *            （选填，默认不参与查询）</br>
-	 *            上传专栏的专栏编号
-	 * @param keyword
-	 *            标题关键字
-	 * @param count
-	 *            （选填，默认10）</br>
-	 *            分页读取的记录数量
-	 * @param offset
-	 *            （选填，默认0）</br>
-	 *            分页读取的起点位置
-	 * 
-	 * @return 内容对象数组
 	 */
 	@POSTAPI(//
 			path = "searchContents", //
