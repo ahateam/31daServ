@@ -28,22 +28,23 @@ public class ORGRoleRepository extends RDSRepository<ORGRole> {
 		super(ORGRole.class);
 	}
 
-	public List<ORGRole> getDirectors(DruidPooledConnection conn, Long orgId, int count, int offset)
+	public List<ORGRole> getORGRoles(DruidPooledConnection conn, Long orgId, String role, int count, int offset)
 			throws ServerException {
-		return getList(conn, "WHERE org_id=? AND duty<>?", new Object[] { orgId, ORGRole.DUTY.NONE.v() }, count,
-				offset);
-	}
 
-	public List<ORGRole> getShareholders(DruidPooledConnection conn, Long orgId, int count, int offset)
-			throws ServerException {
-		return getList(conn, "WHERE org_id=? AND share<>?", new Object[] { orgId, ORGRole.SHARE.NONE.v() }, count,
-				offset);
-	}
+		if (role.equalsIgnoreCase("share")) {
+			return getList(conn, "WHERE org_id=? AND share<>?", new Object[] { orgId, ORGRole.SHARE.NONE.v() }, count,
+					offset);
+		} else if (role.equalsIgnoreCase("duty")) {
+			return getList(conn, "WHERE org_id=? AND duty<>?", new Object[] { orgId, ORGRole.DUTY.NONE.v() }, count,
+					offset);
+		} else if (role.equalsIgnoreCase("visor")) {
+			return getList(conn, "WHERE org_id=? AND visor<>?", new Object[] { orgId, ORGRole.VISOR.NONE.v() }, count,
+					offset);
+		} else {
+			// all
+			return getList(conn, "WHERE org_id=?", new Object[] { orgId, ORGRole.VISOR.NONE.v() }, count, offset);
+		}
 
-	public List<ORGRole> getSuperVisors(DruidPooledConnection conn, Long orgId, int count, int offset)
-			throws ServerException {
-		return getList(conn, "WHERE org_id=? AND visor<>?", new Object[] { orgId, ORGRole.VISOR.NONE.v() }, count,
-				offset);
 	}
 
 	/**
@@ -57,9 +58,10 @@ public class ORGRoleRepository extends RDSRepository<ORGRole> {
 
 		if (cs.contains(Vote.CROWD.ALL.v())) {
 			// 如果包含所有人，则返回组织下全部人数
+			System.out.println("all");
 			return countByKey(conn, "org_id", orgId);
 		} else {
-			StringBuffer sb = new StringBuffer("WHERE ");
+			StringBuffer sb = new StringBuffer("WHERE org_id='").append(orgId).append("' AND ");
 
 			boolean hasShare = true;
 			if (cs.contains(Vote.CROWD.SHAREHOLDER.v()) && cs.contains(Vote.CROWD.REPRESENTATIVE.v())) {
@@ -106,7 +108,7 @@ public class ORGRoleRepository extends RDSRepository<ORGRole> {
 				hasVisor = false;
 			}
 
-			System.out.println(sb.toString());
+			// System.out.println(sb.toString());
 			return count(conn, sb.toString(), new Object[] {});
 		}
 	}

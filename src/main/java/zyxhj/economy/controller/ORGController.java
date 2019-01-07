@@ -321,64 +321,21 @@ public class ORGController extends Controller {
 	}
 
 	/**
-	 * 获取组织董事会成员列表
 	 * 
-	 * @param orgId
-	 *            组织编号
-	 * @param count
-	 *            数量（用于分页）
-	 * @param offset
-	 *            起始位置（从零开始，用于分页）
-	 * @return 董事会成员列表
 	 */
 	@POSTAPI(//
-			path = "getORGDirectors", //
-			des = "获取组织董事会成员列表", //
-			ret = "ORGRole组织对象列表"//
+			path = "getORGUserByRole", //
+			des = "获取组织成员列表", //
+			ret = "成员列表"//
 	)
-	public APIResponse getORGDirectors(//
+	public APIResponse getORGUserByRole(//
 			@P(t = "组织编号") Long orgId, //
+			@P(t = "角色标记(share<股东>,duty<董事会>,visor<监事会>,其它任意值或空表示全部)", r = false) String role, //
 			Integer count, //
 			Integer offset//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getORGDirectors(conn, orgId, count, offset));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getORGShareholders", //
-			des = "获取组织股东会成员列表", //
-			ret = "ORGRole组织对象列表"//
-	)
-	public APIResponse getORGShareholders(//
-			@P(t = "组织编号") Long orgId, //
-			Integer count, //
-			Integer offset//
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getORGShareholders(conn, orgId, count, offset));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getORGSupervisors", //
-			des = "获取组织监事会成员列表", //
-			ret = "ORGRole组织对象列表"//
-	)
-	public APIResponse getORGSupervisors(//
-			@P(t = "组织编号") Long orgId, //
-			Integer count, //
-			Integer offset//
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getORGSupervisors(conn, orgId, count, offset));
+			return APIResponse.getNewSuccessResp(orgService.getORGUserByRole(conn, orgId, role, count, offset));
 		}
 	}
 

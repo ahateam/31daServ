@@ -144,6 +144,11 @@ public class AssetService {
 		return assetRepository.getListByKey(conn, "org_id", orgId, count, offset);
 	}
 
+	public List<Asset> searchAssets(DruidPooledConnection conn, Long orgId, String assetType, Integer count,
+			Integer offset) throws Exception {
+		return assetRepository.searchAssets(conn, orgId, assetType, count, offset);
+	}
+
 	public void importAssets(DruidPooledConnection conn, Long orgId, String url) throws Exception {
 
 		// 2行表头，38列，文件格式写死的

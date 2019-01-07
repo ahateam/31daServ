@@ -195,6 +195,25 @@ public class AssetController extends Controller {
 	 * 
 	 */
 	@POSTAPI(//
+			path = "searchAssets", //
+			des = "查询资产列表", //
+			ret = "资产列表"//
+	)
+	public APIResponse searchAssets(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "资产类型(动产,不动产)", r = false) String assetType, //
+			Integer count, //
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.searchAssets(conn, orgId, assetType, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
 			path = "importAssets", //
 			des = "导入资产列表" //
 	)

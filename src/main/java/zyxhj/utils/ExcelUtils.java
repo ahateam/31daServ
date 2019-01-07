@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,8 +17,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-import zero.EconomyUserImporter;
 
 public class ExcelUtils {
 
@@ -50,7 +49,7 @@ public class ExcelUtils {
 						System.out.print("null" + "\t");
 						objs.add(null);
 					} else {
-						Object obj = EconomyUserImporter.getValue(cell);
+						Object obj = getValue(cell);
 						objs.add(obj);
 						System.out.print(obj + "\t");
 					}
@@ -66,6 +65,29 @@ public class ExcelUtils {
 		return ret;
 	}
 
+	private static Object getValue(Cell cell) {
+		Object obj = null;
+		switch (cell.getCellType()) {
+		case BOOLEAN:
+			obj = cell.getBooleanCellValue();
+			break;
+		case ERROR:
+			obj = cell.getErrorCellValue();
+			break;
+		case NUMERIC:
+			// obj = cell.getNumericCellValue();
+			DecimalFormat df = new DecimalFormat("0");
+			obj = df.format(cell.getNumericCellValue());
+			break;
+		case STRING:
+			obj = cell.getStringCellValue();
+			break;
+		default:
+			break;
+		}
+		return obj;
+	}
+
 	public static List<List<Object>> readExcelOnline(String excelUrl, int skipRowCount, int colCount, int sheetIndex)
 			throws Exception {
 
@@ -77,9 +99,11 @@ public class ExcelUtils {
 
 		Workbook workbook = ExcelUtils.getWorkbook(is, excelUrl);
 
+		List<List<Object>> ret = readxxx(workbook, skipRowCount, colCount, sheetIndex);
+
 		is.close();
 
-		return readxxx(workbook, skipRowCount, colCount, sheetIndex);
+		return ret;
 	}
 
 	public static List<List<Object>> readExcelFile(String fileName, int skipRowCount, int colCount, int sheetIndex)
@@ -88,9 +112,12 @@ public class ExcelUtils {
 		ExcelUtils.checkExcel(excelFile);
 		FileInputStream in = new FileInputStream(excelFile); // 文件流
 		Workbook workbook = ExcelUtils.getWorkbook(in, excelFile);
+
+		List<List<Object>> ret = readxxx(workbook, skipRowCount, colCount, sheetIndex);
+
 		in.close();
 
-		return readxxx(workbook, skipRowCount, colCount, sheetIndex);
+		return ret;
 	}
 
 	private static void checkExcel(File file) throws Exception {

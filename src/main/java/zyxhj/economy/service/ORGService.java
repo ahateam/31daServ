@@ -214,9 +214,10 @@ public class ORGService {
 	 */
 	public void importUser(DruidPooledConnection conn, Long orgId, String mobile, String realName, String idNumber,
 			Byte share, Integer shareAmount, Integer weight, Byte duty, Byte visor) throws Exception {
-		User existUser = userRepository.getByKey(conn, "id_number", idNumber);
-		if (null == existUser) {
-			// 用户不存在，直接创建
+
+		User extUser = userRepository.getByKey(conn, "id_number", idNumber);
+		if (null == extUser) {
+			// 用户完全不存在，则User和ORGRole记录都创建
 
 			User newUser = new User();
 			newUser.id = IDUtils.getSimpleId();
@@ -246,17 +247,29 @@ public class ORGService {
 
 			orgRoleRepository.insert(conn, or);
 		} else {
-			// 用户根据身份证号判定重复，其它信息不更改
-			// 用户信息不更新，只更新股东信息表
-			ORGRole renew = new ORGRole();
-			renew.share = share;
-			renew.shareAmount = shareAmount;
-			renew.weight = weight;
-			renew.duty = duty;
-			renew.visor = visor;
+			// 判断ORGRole是否存在
+			ORGRole existor = orgRoleRepository.getByKeys(conn, new String[] { "org_id", "id_number" },
+					new Object[] { orgId, idNumber });
+			if (null == existor) {
+				// ORGRole用户不存在，直接创建
 
-			orgRoleRepository.updateByKeys(conn, new String[] { "org_id", "user_id" },
-					new Object[] { orgId, existUser.id }, renew, true);
+				// 写入股东信息表
+				ORGRole or = new ORGRole();
+				or.orgId = orgId;
+				or.userId = extUser.id;
+
+				or.realName = realName;
+				or.idNumber = idNumber;
+				or.share = share;
+				or.shareAmount = shareAmount;
+				or.weight = weight;
+				or.duty = duty;
+				or.visor = visor;
+
+				orgRoleRepository.insert(conn, or);
+			} else {
+				throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
+			}
 		}
 	}
 
@@ -337,24 +350,9 @@ public class ORGService {
 		return login2(conn, user, role);
 	}
 
-	/**
-	 * 获取组织的董事会成员
-	 */
-	public JSONArray getORGDirectors(DruidPooledConnection conn, Long orgId, int count, int offset) throws Exception {
-		List<ORGRole> ors = orgRoleRepository.getDirectors(conn, orgId, count, offset);
-		return getORGUserByRole(conn, ors);
-	}
-
-	/**
-	 * 获取组织的股东成员
-	 */
-	public JSONArray getORGShareholders(DruidPooledConnection conn, Long orgId, int count, int offset)
-			throws Exception {
-		List<ORGRole> ors = orgRoleRepository.getShareholders(conn, orgId, count, offset);
-		return getORGUserByRole(conn, ors);
-	}
-
-	private JSONArray getORGUserByRole(DruidPooledConnection conn, List<ORGRole> ors) throws Exception {
+	public JSONArray getORGUserByRole(DruidPooledConnection conn, Long orgId, String role, Integer count,
+			Integer offset) throws Exception {
+		List<ORGRole> ors = orgRoleRepository.getORGRoles(conn, orgId, role, count, offset);
 		if (ors == null || ors.size() == 0) {
 			return new JSONArray();
 		} else {
@@ -381,14 +379,6 @@ public class ORGService {
 			}
 			return ret;
 		}
-	}
-
-	/**
-	 * 获取组织的监事会成员
-	 */
-	public JSONArray getORGSupervisors(DruidPooledConnection conn, Long orgId, int count, int offset) throws Exception {
-		List<ORGRole> ors = orgRoleRepository.getSuperVisors(conn, orgId, count, offset);
-		return getORGUserByRole(conn, ors);
 	}
 
 	/**

@@ -108,5 +108,6 @@ public interface BaseRC {
 
 	static final RC ECM_VOIT_NOTEXIST = new RC("ecm-0018", "投票不存在");
 	static final RC ECM_VOIT_STATUS_ERROR = new RC("ecm-0019", "投票状态不允许该操作");
+	static final RC ECM_ORG_USER_EXIST = new RC("ecm-0020", "组织的用户已存在");
 
 }
