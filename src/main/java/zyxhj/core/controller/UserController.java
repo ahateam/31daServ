@@ -10,6 +10,7 @@ import zyxhj.core.domain.User;
 import zyxhj.core.service.UserService;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.ServiceUtils;
+import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSource;
@@ -19,24 +20,15 @@ public class UserController extends Controller {
 
 	private static Logger log = LoggerFactory.getLogger(UserController.class);
 
-	private static UserController ins;
-
-	public static synchronized UserController getInstance(String node) {
-		if (null == ins) {
-			ins = new UserController(node);
-		}
-		return ins;
-	}
-
 	private DataSource dsRds;
 	private UserService userService;
 
-	private UserController(String node) {
+	public UserController(String node) {
 		super(node);
 		try {
 			dsRds = DataSourceUtils.getDataSource("rdsDefault");
 
-			userService = UserService.getInstance();
+			userService = Singleton.ins(UserService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

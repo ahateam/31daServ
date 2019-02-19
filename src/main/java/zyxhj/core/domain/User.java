@@ -23,12 +23,6 @@ public class User {
 	public Long id;
 
 	/**
-	 * 创建时间
-	 */
-	@RDSAnnField(column = RDSAnnField.TIME)
-	public Date createDate;
-
-	/**
 	 * 用户名（索引）
 	 */
 	@RDSAnnIndex(type = RDSAnnIndex.UNIQUE)
@@ -36,22 +30,23 @@ public class User {
 	public String name;
 
 	/**
-	 * 用户真名
+	 * 身份证号
 	 */
-	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String realName;
+	@RDSAnnIndex(type = RDSAnnIndex.UNIQUE)
+	@RDSAnnField(column = "VARCHAR(32)")
+	public String idNumber;
 
 	/**
 	 * 手机号（索引）
 	 */
-	@RDSAnnIndex(type = RDSAnnIndex.UNIQUE)
+	@RDSAnnIndex(type = RDSAnnIndex.NORMAL)
 	@RDSAnnField(column = "VARCHAR(16)")
 	public String mobile;
 
 	/**
 	 * 邮箱（索引）
 	 */
-	@RDSAnnIndex(type = RDSAnnIndex.UNIQUE)
+	@RDSAnnIndex(type = RDSAnnIndex.NORMAL)
 	@RDSAnnField(column = "VARCHAR(64)")
 	public String email;
 
@@ -70,23 +65,10 @@ public class User {
 	public String wxOpenId;
 
 	/**
-	 * 微博开放平台id(索引)
+	 * 用户真名
 	 */
-	@RDSAnnIndex(type = RDSAnnIndex.UNIQUE)
-	@RDSAnnField(column = "VARCHAR(32)")
-	public String wbOpenId;
-
-	/**
-	 * 状态
-	 */
-	@RDSAnnField(column = RDSAnnField.BYTE)
-	public Byte status;
-
-	/**
-	 * 密码
-	 */
-	@RDSAnnField(column = "VARCHAR(32)")
-	public String pwd;
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
+	public String realName;
 
 	/**
 	 * 昵称
@@ -101,10 +83,21 @@ public class User {
 	public String signature;
 
 	/**
-	 * 身份证号
+	 * 密码
 	 */
 	@RDSAnnField(column = "VARCHAR(32)")
-	public String idNumber;
+	public String pwd;
+
+	/**
+	 * 创建时间
+	 */
+	@RDSAnnField(column = RDSAnnField.TIME)
+	public Date createDate;
+	/**
+	 * 状态
+	 */
+	@RDSAnnField(column = RDSAnnField.BYTE)
+	public Byte status;
 
 	/**
 	 * 用户角色列表</br>

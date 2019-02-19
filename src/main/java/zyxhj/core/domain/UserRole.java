@@ -5,8 +5,7 @@ import zyxhj.utils.data.rds.RDSAnnField;
 import zyxhj.utils.data.rds.RDSAnnID;
 
 /**
- * 权限模块，角色表</br>
- * TODO 待实现
+ * 角色表
  *
  */
 @RDSAnnEntity(alias = "tb_user_role")
@@ -18,18 +17,6 @@ public class UserRole {
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long id;
-
-	/**
-	 * 来源关键字
-	 */
-	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String origin;
-
-	/**
-	 * 所有者编号
-	 */
-	@RDSAnnField(column = RDSAnnField.ID)
-	public Long ownerId;
 
 	/**
 	 * 角色名称

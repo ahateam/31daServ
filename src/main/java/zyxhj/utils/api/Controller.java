@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -43,6 +44,13 @@ public abstract class Controller {
 		public byte v();
 
 		public String txt();
+	}
+
+	@Target(ElementType.TYPE)
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface NODE {
+
+		public String name();
 	}
 
 	@Target(ElementType.PARAMETER)
@@ -127,14 +135,14 @@ public abstract class Controller {
 	 */
 	protected String node;
 
-	protected Map<String, Object[]> methods = new LinkedHashMap<>();
+	protected Map<String, Object[]> methods = new TreeMap<>();
 
 	/**
 	 * 无效，并被警告的方法
 	 */
 	protected Map<String, Method> warningMethods = new HashMap<>();
 
-	protected Map<String, Object[]> enumFields = new LinkedHashMap<>();
+	protected Map<String, Object[]> enumFields = new TreeMap<>();
 
 	private void addMethodIntoMap(Method m, String path, String des, String ret, byte type, boolean verify) {
 		if (StringUtils.isBlank(path)) {
@@ -147,8 +155,10 @@ public abstract class Controller {
 
 				int count = m.getParameterCount();
 				Parameter[] parm = m.getParameters();
+
 				P[] ann = null;
 				if (parm != null && parm.length > 0) {
+
 					ann = new P[parm.length];
 					for (int i = 0; i < parm.length; i++) {
 						ann[i] = parm[i].getAnnotation(P.class);
@@ -160,8 +170,10 @@ public abstract class Controller {
 		}
 	}
 
-	protected Controller(String node) {
-		this.node = node;
+	protected Controller(String name) {
+		// NODE nn = this.getClass().getAnnotation(NODE.class);
+		// this.node = nn.name();
+		this.node = name;
 
 		Method[] ms = this.getClass().getMethods();
 
@@ -778,7 +790,7 @@ public abstract class Controller {
 	private static String getStringCanNull(JSONObject jo, String key) {
 		String value = jo.getString(key);
 		if (StringUtils.isBlank(value)) {
-			return "";
+			return null;
 		} else {
 			return value;
 		}

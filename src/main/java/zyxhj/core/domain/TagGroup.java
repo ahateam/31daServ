@@ -30,7 +30,6 @@ public class TagGroup {
 	/**
 	 * 备注
 	 */
-	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
 	public String remark;
 

@@ -17,6 +17,7 @@ import zyxhj.core.repository.UserRepository;
 import zyxhj.core.repository.UserRoleRepository;
 import zyxhj.utils.CacheCenter;
 import zyxhj.utils.IDUtils;
+import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
 
@@ -24,22 +25,13 @@ public class UserService {
 
 	private static Logger log = LoggerFactory.getLogger(UserService.class);
 
-	private static UserService ins;
-
-	public static synchronized UserService getInstance() {
-		if (null == ins) {
-			ins = new UserService();
-		}
-		return ins;
-	}
-
 	private UserRepository userRepository;
 	private UserRoleRepository userRoleRepository;
 
-	private UserService() {
+	public UserService() {
 		try {
-			userRepository = UserRepository.getInstance();
-			userRoleRepository = UserRoleRepository.getInstance();
+			userRepository = Singleton.ins(UserRepository.class);
+			userRoleRepository = Singleton.ins(UserRoleRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -77,12 +69,9 @@ public class UserService {
 
 	public UserSession getUserSession(Long userId) throws Exception {
 		// 先从缓存中获取
-		UserSession session = null;
-		try {
-			session = CacheCenter.SESSION_CACHE.get(userId);
-		} catch (Exception e) {
-			return null;
-		}
+		UserSession session = CacheCenter.SESSION_CACHE.getIfPresent(userId);
+
+		// TODO 没干
 		return session;
 	}
 
@@ -215,36 +204,6 @@ public class UserService {
 			}
 
 		}
-	}
-
-	public JSONArray getUserTags(DruidPooledConnection conn, Long userId, String tagKey) throws Exception {
-		return userRepository.getUserTags(conn, userId, tagKey);
-	}
-
-	public void addUserTags(DruidPooledConnection conn, Long userId, String tagKey, JSONArray tags) throws Exception {
-		userRepository.addUserTags(conn, userId, tagKey, tags);
-	}
-
-	public void removeUserTags(DruidPooledConnection conn, Long userId, String tagKey, JSONArray tags)
-			throws Exception {
-		userRepository.removeTags(conn, userId, tagKey, tags);
-	}
-
-	public void createUserRole(DruidPooledConnection conn, String name, String remark) throws Exception {
-		createUserRole(conn, IDUtils.getSimpleId(), name, remark);
-	}
-
-	public void createUserRole(DruidPooledConnection conn, Long id, String name, String remark) throws Exception {
-		UserRole userRole = new UserRole();
-		userRole.id = id;
-		userRole.name = name;
-		userRole.remark = remark;
-
-		userRoleRepository.insert(conn, userRole);
-	}
-
-	public List<UserRole> getUserRoles(DruidPooledConnection conn) throws Exception {
-		return userRoleRepository.getList(conn, 512, 0);
 	}
 
 }

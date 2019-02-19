@@ -193,4 +193,17 @@ public class ExcelUtils {
 		}
 	}
 
+	public static Boolean parseShiFou(Object o) {
+		if (o == null) {
+			return false;
+		} else {
+			String str = StringUtils.trim(o.toString());
+			if (str.equals("是") || str.equals("true")) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+
 }

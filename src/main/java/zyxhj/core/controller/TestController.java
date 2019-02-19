@@ -18,16 +18,7 @@ public class TestController extends Controller {
 
 	private static Logger log = LoggerFactory.getLogger(TestController.class);
 
-	private static TestController ins;
-
-	public static synchronized TestController getInstance(String node) {
-		if (null == ins) {
-			ins = new TestController(node);
-		}
-		return ins;
-	}
-
-	private TestController(String node) {
+	public TestController(String node) {
 		super(node);
 	}
 

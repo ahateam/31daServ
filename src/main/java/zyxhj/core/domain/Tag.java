@@ -13,7 +13,7 @@ import zyxhj.utils.data.rds.RDSAnnID;
 public class Tag {
 
 	public static enum STATUS implements ENUMVALUE {
-		DISABLED((byte) 0, "启用"), //
+		DISABLED((byte) 0, "禁用"), //
 		ENABLED((byte) 1, "启用"), //
 		;
 
@@ -35,13 +35,6 @@ public class Tag {
 			return txt;
 		}
 	}
-
-	/**
-	 * 标签编号
-	 */
-	@RDSAnnID
-	@RDSAnnField(column = RDSAnnField.ID)
-	public Long id;
 
 	/**
 	 * 状态

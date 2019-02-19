@@ -4,10 +4,8 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Date;
 import java.util.List;
 
 import javax.crypto.Cipher;
@@ -23,6 +21,8 @@ import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.fastjson.JSONArray;
 
 /**
  * 编解码常用工具集</br>
@@ -234,6 +234,25 @@ public class CodecUtils {
 			i++;
 		}
 		return ret;
+	}
+
+	/**
+	 * 将逗号分隔的字符串数组转换成JSONArray
+	 */
+	public static JSONArray convertCommaStringList2JSONArray(String str) {
+		if (StringUtils.isNotBlank(str)) {
+			str = StringUtils.replaceChars(StringUtils.trim(str), '，', ',');// 替换中文逗号
+			String[] strs = StringUtils.split(str, ',');
+			JSONArray ret = new JSONArray();
+			if (strs != null && strs.length > 0) {
+				for (int i = 0; i < strs.length; i++) {
+					ret.add(StringUtils.trim(strs[i]));
+				}
+			}
+			return ret;
+		} else {
+			return new JSONArray();
+		}
 	}
 
 }

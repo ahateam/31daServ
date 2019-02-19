@@ -5,16 +5,7 @@ import zyxhj.utils.data.rds.RDSRepository;
 
 public class TagRepository extends RDSRepository<Tag> {
 
-	private static TagRepository ins;
-
-	public static synchronized TagRepository getInstance() {
-		if (null == ins) {
-			ins = new TagRepository();
-		}
-		return ins;
-	}
-
-	private TagRepository() {
+	public TagRepository() {
 		super(Tag.class);
 	}
 

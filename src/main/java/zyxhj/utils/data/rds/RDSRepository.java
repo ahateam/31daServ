@@ -253,11 +253,24 @@ public abstract class RDSRepository<T> {
 			// 更新操作 where不能为空
 			throw new ServerException(BaseRC.REPOSITORY_SQL_PREPARE_ERROR, "where not null");
 		}
+		Object[] total;
+		if (setParams == null) {
+			if (whereParams == null) {
+				total = new Object[] {};
+			} else {
+				total = whereParams;
+			}
+		} else {
+			if (whereParams == null) {
+				total = setParams;
+			} else {
+				int totalCount = setParams.length + whereParams.length;
+				total = new Object[totalCount];
+				System.arraycopy(setParams, 0, total, 0, setParams.length);
+				System.arraycopy(whereParams, 0, total, setParams.length, whereParams.length);
+			}
+		}
 
-		int totalCount = setParams.length + whereParams.length;
-		Object[] total = new Object[totalCount];
-		System.arraycopy(setParams, 0, total, 0, setParams.length);
-		System.arraycopy(whereParams, 0, total, setParams.length, whereParams.length);
 		// System.out.println(sql);
 		PreparedStatement ps = prepareStatement(conn, sql.toString(), total);
 		int count = 0;
@@ -267,9 +280,6 @@ public abstract class RDSRepository<T> {
 		} catch (Exception e) {
 			throw new ServerException(BaseRC.REPOSITORY_SQL_EXECUTE_ERROR, e.getMessage());
 		} finally {
-			if (count <= 0) {
-				throw new ServerException(BaseRC.REPOSITORY_UPDATE_ERROR, "nothing changed");
-			}
 			try {
 				ps.close();
 			} catch (Exception e) {
@@ -376,134 +386,85 @@ public abstract class RDSRepository<T> {
 		return update(conn, set.toString(), values.toArray(), where, whereParams);
 	}
 
-	protected JSONArray getTags(DruidPooledConnection conn, String tagColumnName, Long objId, String tagKey)
-			throws ServerException {
+	protected int setTags(DruidPooledConnection conn, String tagColumnName, String groupKeyword, JSONArray tags,
+			String where, Object[] whereParams) throws ServerException {
+		// UPDATE `tb_cms_content` SET `tags` = JSON_SET(`tags`
+		// ,'$.kind_type2',JSON_ARRAY("tag4")) WHERE `id`="396368237107578"
+
+		if (tags == null || tags.size() <= 0) {
+			return 0;
+		} else {
+
+			StringBuffer sbSet = new StringBuffer();
+			sbSet.append("SET ").append(tagColumnName).append("= JSON_SET(").append(tagColumnName).append(",'$.")
+					.append(groupKeyword).append("',JSON_ARRAY(");
+			for (int i = 0; i < tags.size(); i++) {
+				sbSet.append("\"").append(tags.getString(i)).append("\",");
+			}
+			sbSet.deleteCharAt(sbSet.length() - 1);
+			sbSet.append("))");
+			String set = sbSet.toString();
+
+			return this.update(conn, set, null, where, whereParams);
+		}
+	}
+
+	protected int addTag(DruidPooledConnection conn, String tagColumnName, String groupKeyword, String tag,
+			String where, Object[] whereParams) throws ServerException {
+		// UPDATE `tb_cms_content`
+		// SET tags=
+		// IF(JSON_CONTAINS_PATH(tags,'one','$.kind_type'),
+		// IF(JSON_CONTAINS(tags,'"tag4"','$.kind_type'),
+		// tags,JSON_ARRAY_APPEND(tags,'$.kind_type',"tag4")),
+		// JSON_SET(tags,'$.kind_type',JSON_ARRAY("tag4")))
+
+		StringBuffer sbSet = new StringBuffer();
+		sbSet.append("SET ").append(tagColumnName).append("= IF(JSON_CONTAINS_PATH(").append(tagColumnName)
+				.append(",'one','$.").append(groupKeyword).append("'),");
+		sbSet.append("IF(JSON_CONTAINS(").append(tagColumnName).append(",'\"").append(tag).append("\"','$.")
+				.append(groupKeyword).append("'),").append(tagColumnName).append(",JSON_ARRAY_APPEND(")
+				.append(tagColumnName).append(",'$.").append(groupKeyword).append("' ,\"").append(tag).append("\")),");
+		sbSet.append("JSON_SET(").append(tagColumnName).append(",'$.").append(groupKeyword).append("',JSON_ARRAY(\"")
+				.append(tag).append("\")))");
+		String set = sbSet.toString();
+
+		return this.update(conn, set, null, where, whereParams);
+	}
+
+	protected int delTag(DruidPooledConnection conn, String tagColumnName, String groupKeyword, String tag,
+			String where, Object[] whereParams) throws ServerException {
+		// UPDATE tb_cms_content
+		// SET tags=IF(JSON_CONTAINS(tags,'"tag8"','$.kind_type'),
+		// JSON_REMOVE(tags,
+		// JSON_UNQUOTE(JSON_SEARCH(tags,'one',"tag8",NULL,'$.kind_type'))),tags)
+		// WHERE id='396112288648401'
+
+		String tagColumn = "tags";
+
+		StringBuffer sbSet = new StringBuffer();
+		sbSet.append("SET ").append(tagColumn).append("=");
+		sbSet.append("IF(JSON_CONTAINS(").append(tagColumn).append(",'\"").append(tag).append("\"','$.")
+				.append(groupKeyword).append("'),");
+		sbSet.append("JSON_REMOVE(").append(tagColumn).append(", JSON_UNQUOTE(JSON_SEARCH(").append(tagColumn)
+				.append(",'one',\"").append(tag).append("\",NULL,'$.").append(groupKeyword).append("'))),")
+				.append(tagColumn).append(")");
+		String set = sbSet.toString();
+
+		return this.update(conn, set, null, where, whereParams);
+	}
+
+	protected JSONArray getTags(DruidPooledConnection conn, String tagColumnName, String groupKeyword, String where,
+			Object[] whereParams) throws ServerException {
 		// SELECT tags->'$.k3' FROM tb_content WHERE id=?
 		StringBuffer sb = new StringBuffer();
-		sb.append(tagColumnName).append("->'$.").append(tagKey).append("'");
-		String result = this.getColumnString(conn, sb.toString(), "WHERE id=?", new Object[] { objId });
-		JSONArray tags = JSON.parseArray(result);
-		return tags;
-	}
-
-	/**
-	 * 由于MYSQL的JSON支持，数组操作的api有些简陋，因此仍然选择读取出来再整体覆盖的办法</br>
-	 * 但是，查询和检索仍然能够得到不小的提高
-	 */
-	protected void addTags(DruidPooledConnection conn, String tagColumnName, Long objId, String tagKey, JSONArray tags)
-			throws ServerException {
-		// UPDATE `tb_content` SET tags=JSON_SET(tags, '$.k2',JSON_ARRAY("t4","t5"))
-		// WHERE id=386953055161814;
-
-		if (null == tags || tags.isEmpty()) {
-			// 目标标签为空，直接不修改，退出
-			return;
+		sb.append(tagColumnName).append("->'$.").append(groupKeyword).append("'");
+		String result = this.getColumnString(conn, sb.toString(), where, whereParams);
+		if (StringUtils.isBlank(result)) {
+			return new JSONArray();
 		} else {
-			JSONArray oldTags = getTags(conn, tagColumnName, objId, tagKey);
-			JSONArray newTags = mergeTags(oldTags, tags);
-
-			StringBuffer sb = new StringBuffer();
-			sb.append("SET ").append(tagColumnName).append("=JSON_SET(").append(tagColumnName).append(",'$.")
-					.append(tagKey);
-			sb.append("',JSON_ARRAY(");
-			for (Object tag : newTags) {
-				sb.append("\"").append(tag).append("\",");
-			}
-			sb.deleteCharAt(sb.length() - 1);
-			sb.append("))");
-			this.update(conn, sb.toString(), new Object[] {}, "WHERE id=?", new Object[] { objId });
+			JSONArray tags = JSON.parseArray(result);
+			return tags;
 		}
-	}
-
-	/**
-	 * 由于MYSQL的JSON支持，数组操作的api有些简陋，因此仍然选择读取出来再整体覆盖的办法</br>
-	 * 但是，查询和检索仍然能够得到不小的提高
-	 */
-	protected void removeTags(DruidPooledConnection conn, String tagColumnName, Long objId, String tagKey,
-			JSONArray tags) throws ServerException {
-		// SQL语句跟add相同，都是设置
-		// UPDATE `tb_content` SET tags=JSON_SET(tags, '$.k2',JSON_ARRAY("t4","t5"))
-		// WHERE id=386953055161814;
-
-		if (null == tags || tags.isEmpty()) {
-			// 目标标签为空，直接不修改，退出
-			return;
-		} else {
-			JSONArray oldTags = getTags(conn, tagColumnName, objId, tagKey);
-			if (null == oldTags || oldTags.isEmpty()) {
-				// 没有旧标签，无需移除
-				return;
-			} else {
-				JSONArray newTags = removeTags(oldTags, tags);
-
-				StringBuffer sb = new StringBuffer();
-				sb.append("SET ").append(tagColumnName).append("=JSON_SET(").append(tagColumnName).append(",'$.")
-						.append(tagKey);
-				sb.append("',JSON_ARRAY(");
-				for (Object tag : newTags) {
-					sb.append("\"").append(tag).append("\",");
-				}
-				sb.deleteCharAt(sb.length() - 1);
-				sb.append("))");
-				this.update(conn, sb.toString(), new Object[] {}, "WHERE id=?", new Object[] { objId });
-			}
-		}
-	}
-
-	private static JSONArray mergeTags(JSONArray old, JSONArray now) {
-		if (null == old || old.isEmpty()) {
-			// old为空，用now覆盖
-			return now;
-		} else {
-			JSONArray ret = new JSONArray();
-			for (Object to : old) {
-				ret.add(to);
-			}
-			// 开始循环逐个添加，如果存在就不添加
-			for (Object tn : now) {
-				boolean exist = false;
-				for (Object to : old) {
-					if (StringUtils.compareIgnoreCase(to.toString(), tn.toString()) == 0) {
-						exist = true;
-						break;
-					} else {
-						continue;
-					}
-				}
-
-				if (exist) {
-					// 已经存在，不添加
-					continue;
-				} else {
-					ret.add(tn);
-				}
-			}
-			return ret;
-		}
-	}
-
-	private static JSONArray removeTags(JSONArray old, JSONArray now) {
-		JSONArray ret = new JSONArray();
-		// 开始循环逐个添加，如果存在就不添加
-		for (Object to : old) {
-			boolean exist = false;
-			for (Object tn : now) {
-				if (StringUtils.compareIgnoreCase(to.toString(), tn.toString()) == 0) {
-					exist = true;
-					break;
-				} else {
-					continue;
-				}
-			}
-
-			if (exist) {
-				// 已经存在，需要移除，不添加
-				continue;
-			} else {
-				ret.add(to);
-			}
-		}
-		return ret;
 	}
 
 	/**
@@ -897,11 +858,11 @@ public abstract class RDSRepository<T> {
 		return count(conn, sb.toString(), new Object[] { value });
 	}
 
-	/**
-	 * 返回某列得字符串值
-	 */
-	protected String getColumnString(DruidPooledConnection conn, String columnName, String where, Object[] whereParams)
-			throws ServerException {
+	protected List<String> getColumnStrings(DruidPooledConnection conn, String columnName, String where,
+			Object[] whereParams, Integer count, Integer offset) throws ServerException {
+
+		checkCountAndOffset(count, offset);
+
 		StringBuilder sql = new StringBuilder("SELECT ").append(columnName).append(" FROM ")
 				.append(mapper.getTableName());
 		if (StringUtils.isNotBlank(where)) {
@@ -909,15 +870,24 @@ public abstract class RDSRepository<T> {
 		} else {
 			// 查询操作 where可以为空
 		}
+
+		if (count != null) {
+			sql.append(" LIMIT ").append(count);
+		}
+		if (offset != null) {
+			sql.append(" OFFSET ").append(offset);
+		}
+
 		// System.out.println(sql);
 		PreparedStatement ps = prepareStatement(conn, sql.toString(), whereParams);
 		try {
 			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
-				return rs.getString(columnName);
-			} else {
-				return null;
+
+			ArrayList<String> ret = new ArrayList<>();
+			while (rs.next()) {
+				ret.add(rs.getString(columnName));
 			}
+			return ret;
 		} catch (Exception e) {
 			throw new ServerException(BaseRC.REPOSITORY_SQL_EXECUTE_ERROR, e.getMessage());
 		} finally {
@@ -929,9 +899,22 @@ public abstract class RDSRepository<T> {
 	}
 
 	/**
+	 * 返回某列得字符串值
+	 */
+	protected String getColumnString(DruidPooledConnection conn, String columnName, String where, Object[] whereParams)
+			throws ServerException {
+		List<String> list = getColumnStrings(conn, columnName, where, whereParams, 1, 0);
+		if (list.size() <= 0) {
+			return null;
+		} else {
+			return list.get(0);
+		}
+	}
+
+	/**
 	 * 方便跨对象操作的原生SQL模版方法，无特殊情况请避免使用</br>
 	 */
-	protected <X> List<X> nativeGetList(DruidPooledConnection conn, RDSRepository<X> repository, String sql,
+	protected <X> List<X> nativeGetList(DruidPooledConnection conn, RDSRepository repository, String sql,
 			Object[] whereParams) throws ServerException {
 		PreparedStatement ps = prepareStatement(conn, sql, whereParams);
 		try {

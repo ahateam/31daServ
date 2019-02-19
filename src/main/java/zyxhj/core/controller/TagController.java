@@ -5,9 +5,11 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 
+import zyxhj.core.domain.Tag;
 import zyxhj.core.domain.User;
 import zyxhj.core.service.TagService;
 import zyxhj.utils.ServiceUtils;
+import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSource;
@@ -17,29 +19,23 @@ public class TagController extends Controller {
 
 	private static Logger log = LoggerFactory.getLogger(TagController.class);
 
-	private static TagController ins;
-
-	public static synchronized TagController getInstance(String node) {
-		if (null == ins) {
-			ins = new TagController(node);
-		}
-		return ins;
-	}
-
 	private DataSource dsRds;
 	private TagService tagService;
 
-	private TagController(String node) {
+	public TagController(String node) {
 		super(node);
 
 		try {
 			dsRds = DataSourceUtils.getDataSource("rdsDefault");
 
-			tagService = TagService.getInstance();
+			tagService = Singleton.ins(TagService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
 	}
+
+	@ENUM(des = "标签状态")
+	public Tag.STATUS[] tagStatus = Tag.STATUS.values();
 
 	/**
 	 * 
@@ -187,13 +183,13 @@ public class TagController extends Controller {
 	)
 	public APIResponse enableTag(//
 			@P(t = "用户编号") Long userId, //
-			@P(t = "标签编号") Long tagId, //
-			Byte status//
+			@P(t = "标签分组关键字") String groupKeyword, //
+			@P(t = "标签名称") String name//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
-			return APIResponse.getNewSuccessResp(tagService.enableTag(conn, tagId));
+			return APIResponse.getNewSuccessResp(tagService.enableTag(conn, groupKeyword, name));
 		}
 	}
 
@@ -207,13 +203,13 @@ public class TagController extends Controller {
 	)
 	public APIResponse disableTag(//
 			@P(t = "用户编号") Long userId, //
-			@P(t = "标签编号") Long tagId, //
-			Byte status//
+			@P(t = "标签分组关键字") String groupKeyword, //
+			@P(t = "标签名称") String name//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			User user = ServiceUtils.userAuth(conn, userId);// user鉴权
 
-			return APIResponse.getNewSuccessResp(tagService.disableTag(conn, tagId));
+			return APIResponse.getNewSuccessResp(tagService.disableTag(conn, groupKeyword, name));
 		}
 	}
 }

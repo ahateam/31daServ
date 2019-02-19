@@ -13,28 +13,19 @@ import zyxhj.core.domain.Tag;
 import zyxhj.core.domain.TagGroup;
 import zyxhj.core.repository.TagGroupRepository;
 import zyxhj.core.repository.TagRepository;
-import zyxhj.utils.IDUtils;
+import zyxhj.utils.Singleton;
 
 public class TagService {
 
 	private static Logger log = LoggerFactory.getLogger(TagService.class);
 
-	private static TagService ins;
-
-	public static synchronized TagService getInstance() {
-		if (null == ins) {
-			ins = new TagService();
-		}
-		return ins;
-	}
-
 	private TagRepository tagRepository;
 	private TagGroupRepository groupRepository;
 
-	private TagService() {
+	public TagService() {
 		try {
-			tagRepository = TagRepository.getInstance();
-			groupRepository = TagGroupRepository.getInstance();
+			tagRepository = Singleton.ins(TagRepository.class);
+			groupRepository = Singleton.ins(TagGroupRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -93,10 +84,9 @@ public class TagService {
 	public Tag createTag(DruidPooledConnection conn, String groupKeyword, String name) throws Exception {
 		Tag ct = new Tag();
 
-		ct.id = IDUtils.getSimpleId();
-		ct.status = Tag.STATUS.ENABLED.v();
 		ct.groupKeyword = groupKeyword;
 		ct.name = name;
+		ct.status = Tag.STATUS.ENABLED.v();
 
 		tagRepository.insert(conn, ct);
 
@@ -126,20 +116,22 @@ public class TagService {
 	/**
 	 * 启用标签
 	 */
-	public int enableTag(DruidPooledConnection conn, Long tagId) throws Exception {
+	public int enableTag(DruidPooledConnection conn, String groupKeyword, String name) throws Exception {
 		Tag renew = new Tag();
 		renew.status = Tag.STATUS.ENABLED.v();
 
-		return tagRepository.updateByKey(conn, "id", tagId, renew, true);
+		return tagRepository.updateByKeys(conn, new String[] { "group_keyword", "name" },
+				new Object[] { groupKeyword, name }, renew, true);
 	}
 
 	/**
 	 * 禁用标签
 	 */
-	public int disableTag(DruidPooledConnection conn, Long tagId) throws Exception {
+	public int disableTag(DruidPooledConnection conn, String groupKeyword, String name) throws Exception {
 		Tag renew = new Tag();
 		renew.status = Tag.STATUS.DISABLED.v();
 
-		return tagRepository.updateByKey(conn, "id", tagId, renew, true);
+		return tagRepository.updateByKeys(conn, new String[] { "group_keyword", "name" },
+				new Object[] { groupKeyword, name }, renew, true);
 	}
 }
