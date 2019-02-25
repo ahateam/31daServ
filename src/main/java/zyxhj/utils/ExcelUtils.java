@@ -193,6 +193,9 @@ public class ExcelUtils {
 		}
 	}
 
+	/**
+	 * 解析是否成为true，false
+	 */
 	public static Boolean parseShiFou(Object o) {
 		if (o == null) {
 			return false;
